@@ -17,6 +17,70 @@
       <description>default follows the system, dark and light force one.</description>
     </key>
 
+    <key name="style" type="s">
+      <choices>
+        <choice value="powertoys"/>
+        <choice value="mac"/>
+      </choices>
+      <default>'mac'</default>
+      <summary>Look</summary>
+      <description>mac is a floating pill with sectioned results, powertoys is one window with two-line rows.</description>
+    </key>
+    <key name="disabled-providers" type="as">
+      <default>['org.gnome.Calculator.desktop']</default>
+      <summary>Disabled sources</summary>
+      <description>Search sources that never show results, by provider id or desktop id. Manage with `yags provider`.</description>
+    </key>
+    <key name="feature-keywords" type="b">
+      <default>true</default>
+      <summary>Prefix keywords</summary>
+      <description>= calculator, &gt; shell, &lt; windows, ? files, ?? web, * bookmarks, : clipboard.</description>
+    </key>
+    <key name="feature-row-actions" type="b">
+      <default>true</default>
+      <summary>Row action buttons</summary>
+      <description>Buttons on the selected row: new window, open folder, copy.</description>
+    </key>
+    <key name="feature-currency" type="b">
+      <default>true</default>
+      <summary>Currency conversion</summary>
+      <description>Convert currencies with daily rates from open.er-api.com, cached locally.</description>
+    </key>
+    <key name="feature-web-fallback" type="b">
+      <default>true</default>
+      <summary>Web search row</summary>
+      <description>Always offer a web search as the last result.</description>
+    </key>
+    <key name="feature-shell-preview" type="b">
+      <default>true</default>
+      <summary>Live shell output</summary>
+      <description>Run allowlisted read-only commands while typing after &gt; and show their output.</description>
+    </key>
+    <key name="currencies" type="as">
+      <default>['USD', 'EUR', 'INR', 'GBP']</default>
+      <summary>Currencies</summary>
+      <description>Targets for an amount typed without "to", like "50 usd".</description>
+    </key>
+    <key name="search-engine" type="s">
+      <default>'https://www.google.com/search?q=%s'</default>
+      <summary>Search engine</summary>
+      <description>URL for web searches, %s is replaced by the query.</description>
+    </key>
+    <key name="web-shortcuts" type="as">
+      <default>['g|Google|https://www.google.com/search?q=%s', 'ddg|DuckDuckGo|https://duckduckgo.com/?q=%s', 'yt|YouTube|https://www.youtube.com/results?search_query=%s', 'gh|GitHub|https://github.com/search?q=%s', 'w|Wikipedia|https://en.wikipedia.org/wiki/Special:Search?search=%s', 'maps|Google Maps|https://www.google.com/maps/search/%s', 'r|Reddit|https://www.reddit.com/search/?q=%s', 'so|Stack Overflow|https://stackoverflow.com/search?q=%s', 'mdn|MDN|https://developer.mozilla.org/en-US/search?q=%s', 'npm|npm|https://www.npmjs.com/search?q=%s', 'pypi|PyPI|https://pypi.org/search/?q=%s', 'aw|Arch Wiki|https://wiki.archlinux.org/index.php?search=%s']</default>
+      <summary>Web shortcuts</summary>
+      <description>key|Name|url entries. Typing "key query" searches that site.</description>
+    </key>
+    <key name="terminal" type="s">
+      <default>''</default>
+      <summary>Terminal</summary>
+      <description>Terminal for shell commands and command bookmarks. Empty picks the first installed.</description>
+    </key>
+    <key name="shell-preview-commands" type="as">
+      <default>['pwd', 'ls', 'date', 'cal', 'whoami', 'id', 'hostname', 'uname', 'uptime', 'df', 'free', 'lsblk', 'lscpu', 'nproc', 'which', 'echo', 'ps', 'ip addr', 'ip route', 'git status', 'git log']</default>
+      <summary>Live preview allowlist</summary>
+      <description>Commands that may run while typing. An entry matches the first words of the command. Previews run without a shell, capped at 2 seconds and 6000 characters, and never run anything containing shell syntax, globs, = or output options.</description>
+    </key>
     <key name="feature-top-hit" type="b">
       <default>true</default>
       <summary>Top Hit</summary>
@@ -104,8 +168,8 @@
     <key name="corner-radius" type="i">
       <range min="0" max="40"/>
       <default>26</default>
-      <summary>Card corner radius</summary>
-      <description>Corner radius of the results card in pixels.</description>
+      <summary>Corner radius</summary>
+      <description>Corner radius of the results card. The search bar, rows and preview scale with it.</description>
     </key>
     <key name="opacity" type="i">
       <range min="50" max="100"/>

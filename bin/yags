@@ -17,6 +17,26 @@ VERSION = "1.0.0"
 REPO = Path(__file__).resolve().parent.parent
 EXT_DIR = Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "gnome-shell/extensions" / UUID
 BIN_DIR = Path.home() / ".local/bin"
+BOOKMARKS = Path(os.environ.get("XDG_CONFIG_HOME", Path.home() / ".config")) / "yags" / "bookmarks.json"
+BUILTIN_PROVIDERS = {
+    "calc": ("yags-calc", "Calculator, units, currency, dev tools  (=)"),
+    "apps": ("applications", "Applications and system actions"),
+    "bookmarks": ("yags-bookmarks", "yags bookmarks  (*)"),
+    "windows": ("yags-windows", "Open windows  (<)"),
+    "files": ("yags-files", "File search  (?)"),
+    "clipboard": ("yags-clipboard", "Clipboard history  (:)"),
+    "shell": ("yags-shell", "Shell commands  (>)"),
+    "web": ("yags-web", "Web search and URLs  (??)"),
+}
+KEYWORDS = [
+    ("=", "calculator: 2^10, 0xff | 0b1, 10 km to mi, 50 usd to inr, sqrt(2)"),
+    (">", "shell: > pwd shows live output, Enter runs in a terminal"),
+    ("<", "switch to an open window"),
+    ("?", "files only"),
+    ("??", "web search, or a site shortcut like: g, yt, gh, w, maps, so, mdn"),
+    ("*", "bookmarks only"),
+    (":", "clipboard history"),
+]
 PAYLOAD = ["extension.js", "metadata.json", "prefs.js", "stylesheet.css", "LICENSE", "lib", "prefs", "schemas"]
 SHORTCUT_SCHEMAS = [
     "org.gnome.desktop.wm.keybindings",
@@ -109,9 +129,9 @@ def parse_variant(text):
     if re.fullmatch(r"-?\d+", text):
         return int(text)
     if text.startswith("["):
-        return re.findall(r"'((?:[^'\\]|\\.)*)'", text)
-    if text.startswith("'") and text.endswith("'"):
-        return text[1:-1].replace("\\'", "'")
+        return [a or b for a, b in re.findall(r"'((?:[^'\\]|\\.)*)'|\"((?:[^\"\\]|\\.)*)\"", text)]
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in "'\"":
+        return text[1:-1].replace("\\'", "'").replace('\\"', '"')
     return text
 
 
@@ -361,6 +381,148 @@ def ext_state_of(uuid):
     return m.group(1) if m else None
 
 
+def remote_providers():
+    found = {}
+    dirs = [Path("/usr/share/gnome-shell/search-providers"),
+            Path(os.environ.get("XDG_DATA_HOME", Path.home() / ".local/share")) / "gnome-shell/search-providers"]
+    for d in dirs:
+        for ini in sorted(d.glob("*.ini")) if d.exists() else []:
+            m = re.search(r"^DesktopId=(.+)$", ini.read_text(errors="ignore"), re.M)
+            if not m:
+                continue
+            desktop = m.group(1).strip()
+            alias = desktop.removesuffix(".desktop").split(".")[-1].lower()
+            found[alias] = desktop
+    return found
+
+
+def all_providers():
+    out = {k: (v[0], v[1]) for k, v in BUILTIN_PROVIDERS.items()}
+    for alias, desktop in remote_providers().items():
+        key = alias if alias not in out else desktop.removesuffix(".desktop").lower()
+        out[key] = (desktop, desktop.removesuffix(".desktop"))
+    return out
+
+
+def gnome_disabled():
+    res = run("gsettings", "get", "org.gnome.desktop.search-providers", "disabled")
+    return parse_variant(res.stdout) if res and res.returncode == 0 else []
+
+
+def cmd_provider(args):
+    providers = all_providers()
+    disabled = set(get("disabled-providers"))
+    gdisabled = set(gnome_disabled())
+    if args.action in (None, "list"):
+        width = max(len(k) for k in providers)
+        for alias, (pid, label) in providers.items():
+            if pid in gdisabled:
+                state = paint("2", "off (GNOME)")
+            else:
+                state = fmt(pid not in disabled)
+            print(f"  {paint('36', alias.ljust(width))}  {state:<22}  {paint('2', label)}")
+        return
+    if not args.names:
+        die(f"name a source: {', '.join(providers)}")
+    targets = list(providers) if args.names == ["all"] else args.names
+    for name in targets:
+        if name not in providers:
+            die(f"unknown source {name}, see `yags provider`")
+        pid = providers[name][0]
+        if args.action == "off":
+            disabled.add(pid)
+        else:
+            disabled.discard(pid)
+            if pid in gdisabled:
+                gdisabled.discard(pid)
+                run("gsettings", "set", "org.gnome.desktop.search-providers", "disabled",
+                    "[" + ", ".join(gv_string(x) for x in sorted(gdisabled)) + "]")
+                warn(f"{name} was also off in GNOME Settings, turned that on too")
+        ok(f"{name} {'off' if args.action == 'off' else 'on'}")
+    gs("set", SCHEMA, "disabled-providers", "[" + ", ".join(gv_string(x) for x in sorted(disabled)) + "]")
+
+
+def load_bookmarks():
+    try:
+        import json
+        data = json.loads(BOOKMARKS.read_text())
+        return data if isinstance(data, list) else []
+    except (OSError, ValueError):
+        return []
+
+
+def save_bookmarks(items):
+    import json
+    BOOKMARKS.parent.mkdir(parents=True, exist_ok=True)
+    tmp = BOOKMARKS.with_suffix(".tmp")
+    tmp.write_text(json.dumps(items, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(BOOKMARKS)
+
+
+def bookmark_type(target):
+    if target.startswith(">"):
+        return "command"
+    if re.match(r"^https?://", target, re.I) or re.match(r"^(www\.)?[\w-]+(\.[\w-]+)+(/\S*)?$", target) and not Path(target).expanduser().exists():
+        return "site"
+    if re.match(r"^[a-z][a-z0-9+.-]*://", target, re.I) and not target.startswith("file://"):
+        return "location"
+    return "folder" if Path(target.removeprefix("file://")).expanduser().is_dir() else "file"
+
+
+def cmd_bookmark(args):
+    items = load_bookmarks()
+    if args.action in (None, "list"):
+        if not items:
+            print("  no bookmarks yet, add one: yags bookmark add docs ~/Documents")
+            return
+        width = max(len(b["name"]) for b in items)
+        for b in items:
+            kind = b.get("type") or bookmark_type(b["target"])
+            print(f"  {paint('36', b['name'].ljust(width))}  {kind:<9}  {b['target']}")
+        return
+    if args.action == "add":
+        if len(args.rest) < 2:
+            die("usage: yags bookmark add NAME TARGET   (TARGET: a path, URL, sftp://…, or '> command')")
+        name, target = args.rest[0], " ".join(args.rest[1:])
+        if not target.startswith(">") and not re.match(r"^[a-z][a-z0-9+.-]*://", target, re.I):
+            p = Path(target).expanduser()
+            if p.exists():
+                target = str(p.resolve()).replace(str(Path.home()), "~", 1)
+        kind = args.type or bookmark_type(target)
+        items = [b for b in items if b["name"] != name]
+        entry = {"name": name, "target": target, "type": kind}
+        if args.tag:
+            entry["tags"] = args.tag
+        items.append(entry)
+        save_bookmarks(items)
+        ok(f"bookmarked {name} ({kind}) -> {target}")
+        return
+    if args.action in ("rm", "remove"):
+        if not args.rest:
+            die("usage: yags bookmark rm NAME")
+        left = [b for b in items if b["name"] not in args.rest]
+        if len(left) == len(items):
+            die("no bookmark with that name")
+        save_bookmarks(left)
+        ok(f"removed {', '.join(args.rest)}")
+        return
+    if args.action == "path":
+        print(BOOKMARKS)
+
+
+def cmd_style(args):
+    if args.value:
+        set_key("style", args.value)
+    else:
+        print(get("style"))
+
+
+def cmd_keywords(_):
+    for key, text in KEYWORDS:
+        print(f"  {paint('36', key.ljust(3))} {text}")
+    print(paint("2", "  turn prefixes off with: yags feature off keywords"))
+
+
 def cmd_install(args):
     if not (REPO / "metadata.json").exists():
         die(f"run install from a yags checkout, {REPO} has no metadata.json")
@@ -452,6 +614,24 @@ def main():
     s = sub.add_parser("accent", help="show or set the accent color, e.g. #ff375f")
     s.add_argument("value", nargs="?")
     s.set_defaults(fn=cmd_accent)
+
+    s = sub.add_parser("provider", aliases=["source"], help="list or toggle search sources, e.g. contacts")
+    s.add_argument("action", nargs="?", choices=["list", "on", "off"])
+    s.add_argument("names", nargs="*")
+    s.set_defaults(fn=cmd_provider)
+
+    s = sub.add_parser("bookmark", aliases=["bm"], help="yags bookmarks: list, add NAME TARGET, rm NAME")
+    s.add_argument("action", nargs="?", choices=["list", "add", "rm", "remove", "path"])
+    s.add_argument("rest", nargs="*")
+    s.add_argument("--type", choices=["file", "folder", "site", "location", "command"])
+    s.add_argument("--tag", action="append")
+    s.set_defaults(fn=cmd_bookmark)
+
+    s = sub.add_parser("style", help="mac (default) or powertoys")
+    s.add_argument("value", nargs="?", choices=["mac", "powertoys"])
+    s.set_defaults(fn=cmd_style)
+
+    sub.add_parser("keywords", help="list prefix keywords").set_defaults(fn=cmd_keywords)
 
     s = sub.add_parser("install", help="install this checkout into GNOME Shell")
     s.add_argument("--link", action="store_true", help="symlink instead of copy, for development")

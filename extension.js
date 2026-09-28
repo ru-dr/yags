@@ -24,7 +24,7 @@ export default class YagsExtension extends Extension {
     }
     _grabShortcut(accelerator) {
         this._keybindingManager.listenFor(accelerator, () => {
-            if (this._popup.visible)
+            if (this._popup._visible)
                 this._popup.close();
             else
                 this._popup.open();

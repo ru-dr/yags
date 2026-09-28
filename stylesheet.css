@@ -319,3 +319,184 @@
 .yags-container.theme-light .yags-preview-separator {
   background-color: rgba(0, 0, 0, 0.1);
 }
+.yags-container .yags-bar-underline {
+  height: 0;
+  background-color: transparent;
+}
+.yags-container .yags-row-indicator {
+  width: 0;
+}
+.yags-container .yags-row-actions {
+  spacing: 2px;
+  padding-left: 8px;
+}
+.yags-container .yags-row-action {
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  padding: 0;
+  background-color: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+}
+.yags-container .yags-row-action:hover {
+  background-color: rgba(255, 255, 255, 0.26);
+}
+.yags-container .yags-row-action-icon {
+  icon-size: 14px;
+}
+.yags-container .yags-row-text {
+  spacing: 1px;
+}
+
+.yags-container.yags-style-powertoys {
+  background-color: rgba(32, 32, 32, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  spacing: 8px;
+}
+.yags-container.yags-style-powertoys.theme-light {
+  background-color: rgba(243, 243, 243, 0.97);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.18);
+}
+.yags-container.yags-style-powertoys .yags-bar {
+  background-color: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: none;
+  border-radius: 6px;
+  padding: 7px 8px 7px 14px;
+}
+.yags-container.yags-style-powertoys.theme-light .yags-bar {
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.07);
+}
+.yags-container.yags-style-powertoys .yags-bar-underline {
+  height: 2px;
+  margin: 0 5px;
+  border-radius: 1px;
+  background-color: #0a84ff;
+}
+.yags-container.yags-style-powertoys .yags-results,
+.yags-container.yags-style-powertoys.theme-light .yags-results {
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+.yags-container.yags-style-powertoys .list-search-result {
+  padding: 5px 8px 5px 2px;
+  border-radius: 6px;
+}
+.yags-container.yags-style-powertoys .list-search-result .list-search-result-content {
+  spacing: 12px;
+}
+.yags-container.yags-style-powertoys .yags-row-indicator {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background-color: transparent;
+}
+.yags-container.yags-style-powertoys .yags-row-title {
+  font-size: 14px;
+}
+.yags-container.yags-style-powertoys .list-search-result .list-search-result-description {
+  font-size: 12px;
+}
+.yags-container.yags-style-powertoys .list-search-result:hover {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+.yags-container.yags-style-powertoys.theme-light .list-search-result:hover {
+  background-color: rgba(0, 0, 0, 0.035) !important;
+}
+.yags-container.yags-style-powertoys .list-search-result:selected,
+.yags-container.yags-style-powertoys .list-search-result:focus,
+.yags-container.yags-style-powertoys .list-search-result:selected:hover,
+.yags-container.yags-style-powertoys .list-search-result:focus:hover {
+  background-color: rgba(255, 255, 255, 0.075) !important;
+}
+.yags-container.yags-style-powertoys.theme-light .list-search-result:selected,
+.yags-container.yags-style-powertoys.theme-light .list-search-result:focus,
+.yags-container.yags-style-powertoys.theme-light .list-search-result:selected:hover,
+.yags-container.yags-style-powertoys.theme-light .list-search-result:focus:hover {
+  background-color: rgba(0, 0, 0, 0.055) !important;
+}
+.yags-container.yags-style-powertoys .list-search-result:selected .yags-row-indicator,
+.yags-container.yags-style-powertoys .list-search-result:focus .yags-row-indicator {
+  background-color: #0a84ff;
+}
+.yags-container.yags-style-powertoys .list-search-result:selected StLabel,
+.yags-container.yags-style-powertoys .list-search-result:focus StLabel {
+  color: #ffffff;
+}
+.yags-container.yags-style-powertoys.theme-light .list-search-result:selected StLabel,
+.yags-container.yags-style-powertoys.theme-light .list-search-result:focus StLabel {
+  color: #1d1d1f;
+}
+.yags-container.yags-style-powertoys .list-search-result:selected .list-search-result-description,
+.yags-container.yags-style-powertoys .list-search-result:focus .list-search-result-description {
+  color: rgba(255, 255, 255, 0.6);
+}
+.yags-container.yags-style-powertoys.theme-light .list-search-result:selected .list-search-result-description,
+.yags-container.yags-style-powertoys.theme-light .list-search-result:focus .list-search-result-description {
+  color: rgba(0, 0, 0, 0.55);
+}
+.yags-container.yags-style-powertoys .yags-row-action {
+  border-radius: 4px;
+  background-color: transparent;
+  color: rgba(255, 255, 255, 0.8);
+}
+.yags-container.yags-style-powertoys .yags-row-action:hover {
+  background-color: rgba(255, 255, 255, 0.09);
+}
+.yags-container.yags-style-powertoys.theme-light .yags-row-action {
+  color: rgba(0, 0, 0, 0.7);
+}
+.yags-container.yags-style-powertoys.theme-light .yags-row-action:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+.yags-container.yags-style-powertoys .yags-filter-button {
+  border-radius: 4px;
+  width: 30px;
+  height: 30px;
+}
+.yags-container.yags-style-powertoys .yags-preview {
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.035);
+}
+.yags-container.yags-style-powertoys .yags-bar StEntry,
+.yags-container.yags-style-powertoys .yags-bar StEntry:hover,
+.yags-container.yags-style-powertoys .yags-bar StEntry:focus {
+  min-height: 30px;
+}
+.yags-container .yags-spectrum {
+  spacing: 4px;
+}
+.yags-container .yags-spectrum-cell {
+  spacing: 4px;
+}
+.yags-container .yags-spectrum-swatch {
+  height: 56px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.yags-container .yags-spectrum-base {
+  height: 72px;
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+.yags-container.theme-light .yags-spectrum-swatch {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+}
+.yags-container.theme-light .yags-spectrum-base {
+  border: 2px solid rgba(0, 0, 0, 0.7);
+}
+.yags-container .yags-spectrum-hex {
+  font-size: 9px;
+  font-family: monospace;
+  color: rgba(235, 235, 245, 0.7);
+}
+.yags-container.theme-light .yags-spectrum-hex {
+  color: rgba(60, 60, 67, 0.7);
+}

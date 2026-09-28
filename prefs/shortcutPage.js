@@ -44,7 +44,17 @@ export function buildShortcutPage(settings) {
             return true;
         }
 
+        if (keyval === Gdk.KEY_Escape) {
+            capturing = false;
+            shortcutLabel.label = formatShortcut(settings.get_strv('toggle-shortcut'));
+            return true;
+        }
         const mask = state & Gtk.accelerator_get_default_mod_mask();
+        const needed = Gdk.ModifierType.CONTROL_MASK | Gdk.ModifierType.ALT_MASK | Gdk.ModifierType.SUPER_MASK;
+        if (!(mask & needed)) {
+            shortcutLabel.label = 'Needs Super, Ctrl or Alt…';
+            return true;
+        }
         const binding = Gtk.accelerator_name_with_keycode(null, keyval, keycode, mask);
         if (!binding)
             return true;
@@ -52,13 +62,6 @@ export function buildShortcutPage(settings) {
         shortcutLabel.label = formatShortcut([binding]);
         capturing = false;
         return true;
-    });
-
-    eventController.connect('key-released', () => {
-        if (capturing) {
-            capturing = false;
-            shortcutLabel.label = formatShortcut(settings.get_strv('toggle-shortcut'));
-        }
     });
 
     shortcutRow.add_controller(eventController);

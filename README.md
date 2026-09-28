@@ -1,6 +1,6 @@
 # yags
 
-**Yet Another GNOME Search.** A macOS-inspired, keyboard-driven launcher for GNOME Shell 45 to 51 on Wayland.
+**Yet Another GNOME Search.** A macOS-inspired launcher for GNOME Shell 48 to 51 on Wayland, with PowerToys Run style plugins.
 
 Press `Super + Space`, type, hit `Enter`.
 
@@ -15,101 +15,145 @@ cd yags
                             # and links the yags CLI into ~/.local/bin
 # log out and back in (Wayland loads new extensions only at login)
 yags enable
-yags doctor                 # checks plocate, shortcut conflicts, clipboard manager
+yags doctor
 ```
 
-For development, `./bin/yags install --link` symlinks the checkout instead of copying it. Code changes still need a log out, but settings changes apply instantly.
+`./bin/yags install --link` symlinks the checkout instead, for development.
 
-**Optional dependencies**
-- `plocate` for fast file search (preinstalled on Fedora). The index refreshes daily. Recently used files and anything directly in your home folder, Desktop, Documents, Downloads, Pictures, Music and Videos show up right away.
-- Copyous, for the Clipboard filter.
+**Optional:** `plocate` for file search, and Copyous for clipboard history.
 
 ---
 
-## Features
+## Prefixes
 
-| Feature | What it does |
-|---|---|
-| **Top Hit** | The best match gets its own section at the top, with a larger icon |
-| **Inline completion** | Typing `fir` shows faded `efox — Application`. `Tab` or `→` accepts it |
-| **Bar icon** | The magnifier turns into the selected result's icon |
-| **Preview pane** | Details beside the list: app description, file size and dates, thumbnails, clipboard contents |
-| **Filters** | Apps, Files, Actions and Clipboard buttons, `Super + 1` to `Super + 4`. `Backspace` on an empty bar clears the filter |
-| **File search** | The plocate index, plus recent and fresh files, ranked by name match, recency and depth. Package caches are skipped |
-| **File actions** | `Super + Enter` shows the file in Files, `Super + C` copies its path |
-| **Calculator and conversion** | `12*7`, `10 km in miles`, `50 usd to inr`, answers first. Enter copies the answer |
-| **Remember last search** | Reopening shows the previous query, selected, so typing replaces it |
-| **Bounce** | A slight spring when it opens |
-| **Everything GNOME searches** | Apps, Settings panels, system actions (`lock`, `suspend`), contacts, and any app that plugs into GNOME search |
+Type a prefix to search only one plugin. Without a prefix, everything is searched together.
+
+| Prefix | Plugin | Example |
+|---|---|---|
+| `=` | Calculator | `= 2pi`, `= sqrt(2)*3` |
+| `>` | Shell | `> pwd` shows live output, `Enter` runs in a terminal |
+| `<` | Open windows | `< firefox` |
+| `?` | Files | `? report` |
+| `??` | Web search | `?? gnome shell` |
+| `*` | Bookmarks | `* docs` |
+| `:` | Clipboard | `: password` |
+
+`yags keywords` prints this list. `yags feature off keywords` turns prefixes off.
+
+## Plugins
+
+**Calculator and dev tools.** These work without a prefix whenever the query looks like one:
+- **Math:** `+ - * / % ^ **`, `//` (floor division), `mod`, `!`, parentheses, and functions (`sqrt cbrt abs sin cos tan asin acos atan ln log log2 log10 exp floor ceil round min max pow hypot gcd lcm avg sum deg rad`). Constants: `pi e tau phi`.
+- **Bases and bitwise:** `0xff`, `0b1010`, `0o17`, `&`, `|`, `xor`, `~`, `<<`, `>>`. Results also show hex, binary and octal. `255 to hex`, `0xff to dec`.
+- **Units:** length, mass, volume, area, time, speed, data (`GiB`, `MB`, `Mb`), pressure, energy, angle, temperature. `10 km to mi`, `100 f in c`, `1 GiB to MB`.
+- **Currency:** `50 usd to inr`, `100 eur` (converts into the `currencies` list). Daily rates from open.er-api.com, cached in `~/.cache/yags/rates.json`.
+- **Generators:** `uuid`, `md5|sha1|sha256|sha384|sha512 text`, `base64 text`, `base64d text`, `url text`, `urldecode text`, `password 24`, `random 1 100`.
+- **Time:** `now` (local, ISO 8601, Unix seconds and milliseconds), and a 10 or 13 digit Unix timestamp gives its date.
+- **Colours:** `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`, `hsl()`. Rows for HEX, RGB, HSL, HSV and CMYK. The preview shows a five-step spectrum (two darker shades, the colour, two lighter tints; click one to copy it), plus contrast against white and black with the WCAG grade, and luminance.
+
+`Enter` copies any calculator result.
+
+**Shell (`>`).** `> pwd`, `> ls`, `> git status` and other read-only commands show live output in the preview as you type. `Enter` runs any command in your terminal. Live previews:
+- only run commands on the `shell-preview-commands` allowlist
+- run without a shell, so globs, pipes, redirects and substitutions do nothing
+- never run anything containing `; | & < > $ ( ) { } [ ] * ? = !`, a backtick, or options like `-o`/`--output`
+- stop after 2 seconds or 6000 characters
+
+**Bookmarks.** yags keeps its own bookmarks for files, folders, locations, commands and sites. They show up in normal results, or use `*` to search only bookmarks.
+
+```bash
+yags bookmark add docs ~/Documents
+yags bookmark add nas sftp://nas.local/home
+yags bookmark add gh https://github.com/ru-dr
+yags bookmark add "disk usage" '> df -h'
+yags bookmark list
+yags bookmark rm nas
+```
+
+**Web.**
+- Every search ends with a "Search the web" row.
+- Typing a URL or domain opens it.
+- Site shortcuts: `g`, `ddg`, `yt`, `gh`, `w`, `maps`, `r`, `so`, `mdn`, `npm`, `pypi`, `aw` (for example `yt lofi`). Configure them with `yags set web-shortcuts 'key|Name|https://site/?q=%s, …'`.
+
+**Windows (`<`).** Switch to any open window by title or app name.
+
+**Files (`?`).** Uses the plocate index, plus recently used files and a live listing of your home folder, Desktop, Documents, Downloads, Pictures, Music and Videos. Ranked by name match, recency and depth. Package caches are skipped (`exclude-paths`).
+
+**Clipboard (`:` or `Super + 4`).** Searches your Copyous history. `Enter` copies the entry.
+
+---
+
+## Look and feel
+
+- A floating pill search bar, with results in a separate card below and a preview pane beside them.
+- **Top Hit**, **inline completion** (`Tab` or `→` accepts it), and the bar icon follows the selected result.
+- Action buttons on the selected row: new window, open containing folder, copy.
+- Filter buttons for Apps, Files, Actions and Clipboard (`Super + 1` to `4`).
+- Remembers the last search, and opens with a slight bounce.
+- `yags style powertoys` switches to a single-window PowerToys Run layout, `yags style mac` switches back.
 
 ## Keys
 
 | Key | Action |
 |---|---|
 | `Super + Space` | Open or close |
-| `Super` | Close |
+| `Super` / `Esc` | Close |
 | `↑` `↓` | Move through results |
 | `Tab` `→` | Accept the inline completion |
-| `Enter` | Open the selected result |
+| `Enter` | Open or run the selected result |
+| `Ctrl + Enter` | New window of the selected app |
+| `Ctrl + Shift + E` / `Super + Enter` | Open the containing folder |
+| `Ctrl + Shift + C` / `Super + C` | Copy the path or value |
 | `Super + 1` to `4` | Apps, Files, Actions, Clipboard filter |
-| `Super + Enter` | Show the selected file in Files |
-| `Super + C` | Copy the selected file's path |
-| `Esc` | Close |
+| `Backspace` on an empty bar | Clear the filter |
 
 ---
 
 ## Configure
 
-Every setting applies live, no log out needed.
+Everything applies live, no log out needed.
 
 ```bash
 yags                              # status and help
-yags list                         # every setting and its value
+yags list                         # every setting
 yags feature                      # feature switches
-yags feature off preview bounce   # turn features off
-yags feature on all
+yags feature off preview bounce
+yags provider                     # every search source, with on/off state
+yags provider off contacts calendar
+yags style mac                    # mac | powertoys
 yags theme dark                   # default | dark | light
 yags shortcut super+space
 yags accent '#ff375f'
+yags set corner-radius 14         # the card, bar, rows and preview all follow it
 yags set width 760
-yags set top-offset 25
 yags set max-rows 7
 yags set font-size 22
-yags set corner-radius 18
 yags set opacity 90
+yags set top-offset 25
 yags set placeholder 'Search anything'
-yags set exclude-paths '/go/pkg/mod/, /sdk/, /node_modules/'
-yags reset width                  # or: yags reset --all
-yags prefs                        # the graphical preferences window
-yags doctor
+yags set search-engine 'https://duckduckgo.com/?q=%s'
+yags set currencies 'USD, EUR, INR'
+yags set terminal kitty
+yags reset --all
+yags prefs                        # graphical preferences
+yags doctor                       # dependencies and shortcut conflicts
 ```
 
-| Setting | Default | Range |
-|---|---|---|
-| `width` | 680 | 400 to 1200 px |
-| `top-offset` | 22 | 5 to 60 % of screen height |
-| `max-rows` | 5 | 1 to 15 per section |
-| `font-size` | 20 | 12 to 32 px |
-| `corner-radius` | 26 | 0 to 40 px |
-| `opacity` | 96 | 50 to 100 % |
-| `accent-color` | `#0a84ff` | `#rrggbb` |
-| `placeholder` | `Yags Search` | any text |
-| `exclude-paths` | Go, SDK, Cargo and Rustup caches | comma-separated path fragments |
-
-Feature switches: `top-hit`, `completion`, `bar-icon`, `preview`, `filters`, `remember-query`, `bounce`, `file-search`, `clipboard`, `file-actions`, `calculator-style`.
+Feature switches: `top-hit`, `completion`, `bar-icon`, `preview`, `filters`, `remember-query`, `bounce`, `file-search`, `clipboard`, `file-actions`, `calculator-style`, `keywords`, `row-actions`, `currency`, `web-fallback`, `shell-preview`.
 
 ---
 
 ## Troubleshooting
 
-- **The bar is invisible or GNOME search breaks at login:** an extension is hiding the Overview search (Just Perfection's *Search* option). Turn that option on. yags replaces the Overview search anyway.
-- **`Super + Space` doesn't open it:** run `yags doctor`, which lists anything else bound to the same keys (for example keyboard-layout switching).
-- **A new file doesn't show up:** plocate reindexes daily. Run `sudo updatedb` to refresh now.
+- **The bar is invisible, or GNOME search breaks at login:** an extension is hiding the Overview search (Just Perfection's *Search* option). Turn that option on.
+- **`Super + Space` does nothing:** `yags doctor` lists anything else bound to the same keys.
+- **A new file doesn't show up:** plocate reindexes daily. `sudo updatedb` refreshes it now.
+- **No currency results:** check your connection. Rates are fetched at most every 12 hours, and failures retry after 10 minutes.
 
 ---
 
 ## Credits
 
-yags is a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin, reworked with a new look, new features and a configuration tool by [ru-dr](https://github.com/ru-dr).
+yags is a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin, reworked by [ru-dr](https://github.com/ru-dr).
 
-Licensed under GPL-3.0-or-later, see [LICENSE](LICENSE).
+GPL-3.0-or-later, see [LICENSE](LICENSE).

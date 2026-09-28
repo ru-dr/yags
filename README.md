@@ -35,7 +35,7 @@ Type a prefix to search only one plugin. Without a prefix, everything is searche
 | `<` | Open windows | `< firefox` |
 | `?` | Files | `? report` |
 | `??` | Web search | `?? gnome shell` |
-| `*` | Bookmarks | `* docs` |
+| `*` | Bookmarks | `* docs`, `*+ ~/Projects` adds one |
 | `:` | Clipboard | `: password` |
 
 `yags keywords` prints this list. `yags feature off keywords` turns prefixes off.
@@ -59,15 +59,18 @@ Type a prefix to search only one plugin. Without a prefix, everything is searche
 - never run anything containing `; | & < > $ ( ) { } [ ] * ? = !`, a backtick, or options like `-o`/`--output`
 - stop after 2 seconds or 6000 characters
 
-**Bookmarks.** yags keeps its own bookmarks for files, folders, locations, commands and sites. They show up in normal results, or use `*` to search only bookmarks.
+**Bookmarks.** yags keeps its own bookmarks for files, folders, locations, commands and sites. They show up in normal results, or use `*` to search only bookmarks. There are three ways to add one:
+
+- **From any result:** select a file, folder, URL or shell command and press `Ctrl + D`, or click ☆ on the row. On a bookmark, `Ctrl + D` or the trash button removes it.
+- **By typing:** `*+ ~/Projects`, `*+ docs ~/Documents`, `*+ gh https://github.com/ru-dr`, `*+ nas sftp://nas.local/home`, `*+ disk usage > df -h`, then `Enter`. The name is optional.
+- **Preferences → Bookmarks:** add with file and folder pickers, see all bookmarks, delete them.
+
+The CLI works too:
 
 ```bash
 yags bookmark add docs ~/Documents
-yags bookmark add nas sftp://nas.local/home
-yags bookmark add gh https://github.com/ru-dr
-yags bookmark add "disk usage" '> df -h'
 yags bookmark list
-yags bookmark rm nas
+yags bookmark rm docs
 ```
 
 **Web.**
@@ -104,6 +107,7 @@ yags bookmark rm nas
 | `Ctrl + Enter` | New window of the selected app |
 | `Ctrl + Shift + E` / `Super + Enter` | Open the containing folder |
 | `Ctrl + Shift + C` / `Super + C` | Copy the path or value |
+| `Ctrl + D` | Bookmark the selected file, folder, URL or command, or remove a bookmark |
 | `Super + 1` to `4` | Apps, Files, Actions, Clipboard filter |
 | `Backspace` on an empty bar | Clear the filter |
 

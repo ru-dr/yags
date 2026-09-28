@@ -5,6 +5,7 @@ import {buildShortcutPage} from './prefs/shortcutPage.js';
 import {buildAppearancePage} from './prefs/appearancePage.js';
 import {buildAboutPage} from './prefs/aboutPage.js';
 import {buildFeaturesPage, buildCustomizePage} from './prefs/featuresPage.js';
+import {buildBookmarksPage} from './prefs/bookmarksPage.js';
 
 export default class YagsPreferences extends ExtensionPreferences {
     fillPreferencesWindow(window) {
@@ -37,6 +38,8 @@ export default class YagsPreferences extends ExtensionPreferences {
         });
         customizePage.add(buildCustomizePage(settings));
         window.add(customizePage);
+
+        window.add(buildBookmarksPage(window));
 
         const aboutPage = new Adw.PreferencesPage({
             title: 'About',

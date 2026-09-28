@@ -176,8 +176,12 @@ def cmd_status(_):
     state = ext_state()
     print(paint("1", f"yags {VERSION}") + "  Yet Another GNOME Search")
     if state is None:
-        warn(f"not installed in {EXT_DIR.parent}")
-        print("  run `yags install`, then log out and back in")
+        if (EXT_DIR / "metadata.json").exists():
+            warn(f"installed in {EXT_DIR}, GNOME loads it at next login")
+            print("  log out and back in, then run: yags enable")
+        else:
+            warn(f"not installed in {EXT_DIR.parent}")
+            print("  run `yags install`, then log out and back in")
         return
     link = f" -> {EXT_DIR.resolve()}" if EXT_DIR.is_symlink() else ""
     print(f"  path      {EXT_DIR}{link}")
@@ -309,7 +313,9 @@ def shortcut_conflicts(accel):
 def cmd_doctor(_):
     print(paint("1", "yags doctor"))
     state = ext_state()
-    if state is None:
+    if state is None and (EXT_DIR / "metadata.json").exists():
+        warn("installed, log out and back in to load it, then: yags enable")
+    elif state is None:
         bad("extension not installed, run `yags install`")
     elif state in ("ACTIVE", "ENABLED"):
         ok(f"extension {state.lower()}")

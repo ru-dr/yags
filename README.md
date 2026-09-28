@@ -4,6 +4,8 @@
 
 Press `Super + Space`, type, hit `Enter`.
 
+📖 **Full documentation: [the yags wiki](https://github.com/ru-dr/yags/wiki)**
+
 ---
 
 ## Install

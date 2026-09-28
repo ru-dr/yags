@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<schemalist>
+  <schema id="org.gnome.shell.extensions.yags" path="/org/gnome/shell/extensions/yags/">
+    <key name="toggle-shortcut" type="as">
+      <default>['&lt;Super&gt;space']</default>
+      <summary>Toggle shortcut</summary>
+      <description>Keyboard shortcut that opens and closes yags.</description>
+    </key>
+    <key name="theme-preference" type="s">
+      <choices>
+        <choice value="default"/>
+        <choice value="dark"/>
+        <choice value="light"/>
+      </choices>
+      <default>'default'</default>
+      <summary>Theme</summary>
+      <description>default follows the system, dark and light force one.</description>
+    </key>
+
+    <key name="feature-top-hit" type="b">
+      <default>true</default>
+      <summary>Top Hit</summary>
+      <description>Lift the best match into its own Top Hit section.</description>
+    </key>
+    <key name="feature-completion" type="b">
+      <default>true</default>
+      <summary>Inline completion</summary>
+      <description>Show the rest of the top hit's name after the cursor, Tab or Right accepts it.</description>
+    </key>
+    <key name="feature-bar-icon" type="b">
+      <default>true</default>
+      <summary>Bar icon follows selection</summary>
+      <description>Replace the magnifier with the selected result's icon.</description>
+    </key>
+    <key name="feature-preview" type="b">
+      <default>true</default>
+      <summary>Preview pane</summary>
+      <description>Show details for the selected result beside the list.</description>
+    </key>
+    <key name="feature-filters" type="b">
+      <default>true</default>
+      <summary>Filter buttons</summary>
+      <description>Apps, Files, Actions and Clipboard buttons with Super+1 to Super+4.</description>
+    </key>
+    <key name="feature-remember-query" type="b">
+      <default>true</default>
+      <summary>Remember last search</summary>
+      <description>Reopen with the previous query selected.</description>
+    </key>
+    <key name="feature-bounce" type="b">
+      <default>true</default>
+      <summary>Bounce on open</summary>
+      <description>Open with a slight spring instead of a plain fade.</description>
+    </key>
+    <key name="feature-file-search" type="b">
+      <default>true</default>
+      <summary>File search</summary>
+      <description>Search files in the home folder through plocate and recently used files.</description>
+    </key>
+    <key name="feature-clipboard" type="b">
+      <default>true</default>
+      <summary>Clipboard filter</summary>
+      <description>Search clipboard history from a supported clipboard manager.</description>
+    </key>
+    <key name="feature-file-actions" type="b">
+      <default>true</default>
+      <summary>File actions</summary>
+      <description>Super+Enter shows the selected file in Files, Super+C copies its path.</description>
+    </key>
+    <key name="feature-calculator-style" type="b">
+      <default>true</default>
+      <summary>Answer-first calculator rows</summary>
+      <description>Show calculator and conversion answers as the row title.</description>
+    </key>
+
+    <key name="width" type="i">
+      <range min="400" max="1200"/>
+      <default>680</default>
+      <summary>Width</summary>
+      <description>Popup width in pixels.</description>
+    </key>
+    <key name="top-offset" type="i">
+      <range min="5" max="60"/>
+      <default>22</default>
+      <summary>Top offset</summary>
+      <description>Distance of the bar from the top of the monitor, in percent.</description>
+    </key>
+    <key name="max-rows" type="i">
+      <range min="1" max="15"/>
+      <default>5</default>
+      <summary>Rows per section</summary>
+      <description>Maximum results shown in each section.</description>
+    </key>
+    <key name="placeholder" type="s">
+      <default>'Yags Search'</default>
+      <summary>Placeholder</summary>
+      <description>Text shown in the empty search bar.</description>
+    </key>
+    <key name="accent-color" type="s">
+      <default>'#0a84ff'</default>
+      <summary>Accent color</summary>
+      <description>Color of the selected row, active filter and caret, as #rrggbb.</description>
+    </key>
+    <key name="corner-radius" type="i">
+      <range min="0" max="40"/>
+      <default>26</default>
+      <summary>Card corner radius</summary>
+      <description>Corner radius of the results card in pixels.</description>
+    </key>
+    <key name="opacity" type="i">
+      <range min="50" max="100"/>
+      <default>96</default>
+      <summary>Surface opacity</summary>
+      <description>Opacity of the bar and card, in percent.</description>
+    </key>
+    <key name="font-size" type="i">
+      <range min="12" max="32"/>
+      <default>20</default>
+      <summary>Bar font size</summary>
+      <description>Font size of the search bar text in pixels.</description>
+    </key>
+    <key name="exclude-paths" type="as">
+      <default>['/go/pkg/mod/', '/sdk/', '/.cargo/', '/.rustup/']</default>
+      <summary>Excluded paths</summary>
+      <description>Path fragments whose files never show in file search.</description>
+    </key>
+  </schema>
+</schemalist>

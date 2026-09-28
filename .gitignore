@@ -1,0 +1,68 @@
+# Operating system generated files
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+# Linux
+*~
+
+# Editor and IDE files
+# Vim / Neovim
+*.swp
+*.swo
+*.swn
+# VS Code — ignore everything except shared settings and extensions
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+# Other editors
+*.code-workspace
+.atom/
+.sublime-project
+.sublime-workspace
+.idea/
+
+# Backup and temporary files
+*.bak
+*.backup
+*.tmp
+*.temp
+*.old
+*.orig
+*.rej
+
+# Log files
+*.log
+logs/
+
+# Archives and large binaries
+*.tar.gz
+*.tgz
+*.zip
+*.shell-extension.zip
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+secrets/
+*.key
+*.pem
+*.p12
+
+# Compiled schema
+schemas/gschemas.compiled
+
+# Python (if any local tooling)
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# Node (if any local tooling)
+node_modules/

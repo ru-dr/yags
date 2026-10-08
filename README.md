@@ -27,14 +27,20 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 
 ## Highlights
 
-| | |
-|---|---|
-| ![Calculator](docs/screenshots/calculator.png) | ![Colours](docs/screenshots/colors.png) |
-| **Calculator and dev tools.** Just type `2^10 / 3`, `0xff to bin` or `sqrt 2`. No `=` needed. | **Colours.** `#0a84ff`, `rgb()` or `hsl()`: every format, a five-step spectrum and WCAG contrast. |
-| ![Shell](docs/screenshots/shell.png) | ![Currency](docs/screenshots/currency.png) |
-| **Live shell.** `> ls -la` shows the output as you type. Only safe, read-only commands run in the preview. | **Currency and units.** `50 usd to inr`, `10 km to mi`, `1 GiB to MB`. |
-| ![Bookmarks](docs/screenshots/bookmarks.png) | ![Emoji plugin](docs/screenshots/plugin-emoji.png) |
-| **Bookmarks.** Files, folders, locations, commands and sites. `Ctrl + D` on any result adds one. | **Your own plugins.** This emoji picker is a 60-line Python script. |
+<table>
+<tr>
+<td width="50%" valign="top"><img src="docs/screenshots/calculator.png" alt="Calculator"><br><b>Calculator and dev tools.</b> Just type <code>2^10 / 3</code>, <code>0xff to bin</code> or <code>sqrt 2</code>. No <code>=</code> needed.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/colors.png" alt="Colours"><br><b>Colours.</b> <code>#0a84ff</code>, <code>rgb()</code> or <code>hsl()</code>: every format, a five-step spectrum and WCAG contrast.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/screenshots/shell.png" alt="Shell"><br><b>Live shell.</b> <code>&gt; ls -la</code> shows the output as you type. Only safe, read-only commands run in the preview.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/currency.png" alt="Currency"><br><b>Currency and units.</b> <code>50 usd to inr</code>, <code>10 km to mi</code>, <code>1 GiB to MB</code>.</td>
+</tr>
+<tr>
+<td width="50%" valign="top"><img src="docs/screenshots/bookmarks.png" alt="Bookmarks"><br><b>Bookmarks.</b> Files, folders, locations, commands and sites. <code>Ctrl + D</code> on any result adds one.</td>
+<td width="50%" valign="top"><img src="docs/screenshots/plugin-emoji.png" alt="Emoji plugin"><br><b>Your own plugins.</b> This emoji picker is a 60-line Python script.</td>
+</tr>
+</table>
 
 - **Top Hit**, inline completion, a preview pane, and a bar icon that follows the selection
 - Filters for Apps, Files, Actions and Clipboard (`Super + 1` to `4`)

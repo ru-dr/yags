@@ -77,23 +77,23 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 
 | Field | Required | Default | Meaning |
 |---|---|---|---|
-| `id` | yes | | Lowercase letters, digits and dashes, up to 41 characters. Must be unique. |
-| `name` | yes | | Shown as the section title and in preferences. |
-| `type` | yes | | `"js"` or `"script"`. |
-| `main` | yes* | | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
-| `command` | | | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
-| `api` | | | Set to `1`. |
-| `keyword` | | none | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
-| `global` | | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
-| `position` | | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
-| `priority` | | `50` | Order within a position. Lower comes first. |
-| `category` | | `"general"` | `"apps"`, `"files"`, `"actions"`, `"clipboard"` or `"general"`. Ties the plugin to a filter button. |
-| `minQueryLength` | | `1` | The shortest query sent without the prefix. A query with the prefix is always sent, even when empty. |
-| `completion` | | `true` | Whether the top result's title can fill in the bar as inline completion. |
-| `timeout` | | `1500` | `script` only: the time limit in milliseconds, from 100 to 10000. |
-| `icon` | | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
-| `description`, `version`, `author` | | | Shown in preferences and `yags plugin info`. |
-| `settings` | | `[]` | User settings. See [Settings](#settings). |
+| `id` | yes | — | Lowercase letters, digits and dashes, up to 41 characters. Must be unique. |
+| `name` | yes | — | Shown as the section title and in preferences. |
+| `type` | yes | — | `"js"` or `"script"`. |
+| `main` | yes* | — | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
+| `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
+| `api` | no | — | Set to `1`. |
+| `keyword` | no | none | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
+| `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
+| `position` | no | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
+| `priority` | no | `50` | Order within a position. Lower comes first. |
+| `category` | no | `"general"` | `"apps"`, `"files"`, `"actions"`, `"clipboard"` or `"general"`. Ties the plugin to a filter button. |
+| `minQueryLength` | no | `1` | The shortest query sent without the prefix. A query with the prefix is always sent, even when empty. |
+| `completion` | no | `true` | Whether the top result's title can fill in the bar as inline completion. |
+| `timeout` | no | `1500` | `script` only: the time limit in milliseconds, from 100 to 10000. |
+| `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
+| `description`, `version`, `author` | no | — | Shown in preferences and `yags plugin info`. |
+| `settings` | no | `[]` | User settings. See [Settings](#settings). |
 
 \* For `script` plugins, use either `main` or `command`.
 
@@ -132,9 +132,9 @@ export default class Weather {
 | Method | Required | Called |
 |---|---|---|
 | `query(ctx)` | yes | For each search. Returns an array of [results](#results), or a Promise of one. |
-| `activate(result, action)` | | When a result has no `run` or `activate` field. `action` is an action `id` or `null`. Return [effects](#effects) or `null`. |
-| `available()` | | Return `false` to hide the plugin's filter button, for example when a dependency is missing. |
-| `destroy()` | | On reload, disable and logout. Cancel timers, close files and disconnect signals here. |
+| `activate(result, action)` | no | When a result has no `run` or `activate` field. `action` is an action `id` or `null`. Return [effects](#effects) or `null`. |
+| `available()` | no | Return `false` to hide the plugin's filter button, for example when a dependency is missing. |
+| `destroy()` | no | On reload, disable and logout. Cancel timers, close files and disconnect signals here. |
 
 `query` receives a context object:
 

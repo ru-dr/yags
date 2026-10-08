@@ -44,12 +44,21 @@ def fmt(value):
     return str(value)
 
 
+MAX_CELL = 40
+
+
+def clip(cell):
+    text = str(cell)
+    return text if len(text) <= MAX_CELL else f"{text[:MAX_CELL - 1]}…"
+
+
 def table(rows):
     if not rows:
         return
-    widths = [max(len(str(row[i])) for row in rows) for i in range(len(rows[0]) - 1)]
+    rows = [[clip(cell) for cell in row[:-1]] + [row[-1]] for row in rows]
+    widths = [max(len(row[i]) for row in rows) for i in range(len(rows[0]) - 1)]
     for row in rows:
-        cells = [accent(str(row[0]).ljust(widths[0]))]
-        cells += [str(cell).ljust(widths[i]) for i, cell in enumerate(row[1:-1], start=1)]
+        cells = [accent(row[0].ljust(widths[0]))]
+        cells += [cell.ljust(widths[i]) for i, cell in enumerate(row[1:-1], start=1)]
         cells.append(dim(row[-1]))
         print("  " + "  ".join(cells))

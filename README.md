@@ -12,6 +12,7 @@ A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system 
 ![Wayland](https://img.shields.io/badge/Wayland-ready-success)
 ![Plugin API v1](https://img.shields.io/badge/plugin_API-v1-8a2be2)
 ![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)
+[![CI](https://github.com/ru-dr/yags/actions/workflows/ci.yml/badge.svg)](https://github.com/ru-dr/yags/actions/workflows/ci.yml)
 
 ![yags](docs/screenshots/hero.png)
 
@@ -239,7 +240,7 @@ The code is laid out like this:
 | `prefs/` | Preferences pages |
 | `cli/` | The `yags` tool |
 
-Issues and pull requests are welcome.
+Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for the workflow and release process.
 
 ## Credits
 

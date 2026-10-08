@@ -1,0 +1,19 @@
+name: Feature request
+description: Suggest an idea
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What you want to do
+      description: Describe the problem first, then the solution you have in mind.
+    validations:
+      required: true
+  - type: dropdown
+    id: plugin
+    attributes:
+      label: Could this be a plugin?
+      options:
+        - I don't know
+        - Yes, I could write it as a plugin
+        - No, it needs a change in yags itself

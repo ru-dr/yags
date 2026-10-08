@@ -1,5 +1,9 @@
 # Changelog
 
+All notable changes to yags are listed here. The format follows [Keep a Changelog](https://keepachangelog.com), and versions follow [Semantic Versioning](https://semver.org).
+
+## Unreleased
+
 ## 1.0.0
 
 The first public release.
@@ -21,6 +25,9 @@ The first public release.
   - manifests, settings, previews, actions and effects
   - user prefixes
   - live reload
+  - long-running script plugins that keep one process alive
+  - result scores, so a strong match from any plugin can become the Top Hit
+  - a plugin API version check, and `yags plugin update`
 - **Bundled plugins:** calculator, units, currency, colours, generators, time, shell with a safe live preview, web, bookmarks, files (plocate), windows and clipboard (Copyous)
 - The calculator works without a prefix
 - Prefixes can be changed per plugin

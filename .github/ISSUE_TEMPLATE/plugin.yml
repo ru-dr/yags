@@ -1,0 +1,17 @@
+name: List my plugin or style
+description: Share a plugin or style you made
+labels: [community]
+body:
+  - type: input
+    id: repo
+    attributes:
+      label: Repository
+      placeholder: https://github.com/you/yags-plugin-weather
+    validations:
+      required: true
+  - type: textarea
+    id: about
+    attributes:
+      label: What it does
+    validations:
+      required: true

@@ -1,0 +1,31 @@
+name: Bug report
+description: Something doesn't work
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: Output of `yags doctor`
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log
+      description: "Run `journalctl --user -b -o cat | grep -i yags | tail -50` and paste the output."
+      render: text
+  - type: input
+    id: versions
+    attributes:
+      label: yags, GNOME Shell and distro versions
+      placeholder: yags 1.0.0, GNOME Shell 50, Fedora 44
+    validations:
+      required: true

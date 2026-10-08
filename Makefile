@@ -7,7 +7,7 @@ check: syntax schema lint test
 
 syntax:
 	@for f in $(JS); do node --check $$f || exit 1; done
-	@python3 -m py_compile bin/yags cli/yags/*.py examples/plugins/emoji/plugin.py
+	@python3 -m py_compile bin/yags cli/yags/*.py scripts/*.py examples/plugins/*/*.py
 	@echo "syntax ok"
 
 schema:

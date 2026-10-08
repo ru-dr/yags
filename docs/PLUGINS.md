@@ -9,7 +9,9 @@ This guide covers **Plugin API v1**.
 - [manifest.json](#manifestjson)
 - [JavaScript plugins](#javascript-plugins)
 - [Script plugins](#script-plugins)
+- [Long-running script plugins](#long-running-script-plugins)
 - [Results](#results)
+- [Ranking](#ranking)
 - [Effects](#effects)
 - [Actions](#actions)
 - [Previews](#previews)
@@ -82,7 +84,7 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `type` | yes | — | `"js"` or `"script"`. |
 | `main` | yes* | — | `js`: the module, ending in `.js`. `script`: an executable file in the folder (`chmod +x`). |
 | `command` | no | — | `script` only: an argv array used instead of `main`, such as `["node", "plugin.mjs"]`. |
-| `api` | no | — | Set to `1`. |
+| `api` | no | `1` | The plugin API version it was written for. yags refuses plugins that need a newer API. |
 | `keyword` | no | none | The default prefix. 1 to 12 characters without spaces. See [Prefixes](#prefixes). |
 | `global` | no | `true` | Show results without the prefix. Set this to `false` for anything noisy or slow. |
 | `position` | no | `"bottom"` | `"top"` (above apps), `"after-apps"`, or `"bottom"` (after GNOME's providers). |
@@ -90,7 +92,8 @@ A plugin is shown in normal results when `global` is true. It is always shown wh
 | `category` | no | `"general"` | `"apps"`, `"files"`, `"actions"`, `"clipboard"` or `"general"`. Ties the plugin to a filter button. |
 | `minQueryLength` | no | `1` | The shortest query sent without the prefix. A query with the prefix is always sent, even when empty. |
 | `completion` | no | `true` | Whether the top result's title can fill in the bar as inline completion. |
-| `timeout` | no | `1500` | `script` only: the time limit in milliseconds, from 100 to 10000. |
+| `timeout` | no | `1500` | `script` only: the time limit in milliseconds for each request, from 100 to 10000. |
+| `persistent` | no | `false` | `script` only: keep one process running instead of starting one per request. See [Long-running script plugins](#long-running-script-plugins). |
 | `icon` | no | an add-on icon | The default icon for results and preferences. See [Icons](#icons). |
 | `description`, `version`, `author` | no | — | Shown in preferences and `yags plugin info`. |
 | `settings` | no | `[]` | User settings. See [Settings](#settings). |
@@ -207,7 +210,7 @@ The limits:
 - the process is killed after `timeout` milliseconds, or when the user keeps typing
 - output over 512 KB is rejected
 - stderr is discarded, so print debug output to a file
-- every keystroke starts a new process, so keep startup fast
+- every keystroke starts a new process, so keep startup fast, or use a [long-running process](#long-running-script-plugins)
 
 A minimal Bash plugin:
 
@@ -222,6 +225,38 @@ case "$1" in
   *) echo '{}' ;;
 esac
 ```
+
+## Long-running script plugins
+
+Starting a process on every keystroke is fine for small scripts. It is slow for anything that loads a big library or an index. Set `"persistent": true` and yags starts the process once, the first time it is needed, and keeps it running:
+
+```
+<main or command> serve
+```
+
+Each request is one line of JSON on stdin with an `id`. Each reply is one line of JSON on stdout with the same `id`:
+
+```
+→ {"id": 7, "method": "query", "query": "fire", "raw": ": fire", "forced": true, "filter": null, "settings": {}}
+← {"id": 7, "results": [{"title": "🔥 fire", "copy": "🔥"}]}
+```
+
+- Flush stdout after every line. In Python, use `print(..., flush=True)`.
+- Replies can arrive in any order. yags matches them by `id`, and ignores replies to queries the user has already typed past.
+- Your process can send lines of its own at any time:
+  - `{"method": "refresh"}` makes yags search again, for example when background data arrives
+  - `{"method": "log", "message": "…"}` writes to the journal
+- If the process exits, yags restarts it on the next request. After three crashes within a minute it stops trying until plugins are reloaded.
+- The process is stopped on reload, when the plugin is disabled, and at logout.
+
+```python
+for line in sys.stdin:
+    request = json.loads(line)
+    reply = query(request) if request["method"] == "query" else {}
+    print(json.dumps({"id": request["id"], **reply}), flush=True)
+```
+
+The `emoji` example and `yags plugin new --type script` support both modes, so you can switch with one manifest field.
 
 ## Results
 
@@ -259,8 +294,9 @@ Only `title` is required. JavaScript results can also use functions where noted,
 | `path` | A file path. Enables *Show in folder* and is the copy fallback. |
 | `bookmark`, `bookmarkName` | Enables `Ctrl + D` and the ☆ button. The target can be a path, URL or `> command`. |
 | `kind` | The small line under the title in the preview. Defaults to the plugin name. |
+| `score` | How good a match this is, from 0 to 100. See [Ranking](#ranking). |
 
-Up to 50 results are kept per query. yags shows the first few, depending on `max-rows`.
+Up to 50 results are kept per query. Results with a `score` are sorted by it, highest first. yags shows the first few, depending on `max-rows`.
 
 `Enter` runs the first of these that exists:
 
@@ -270,6 +306,31 @@ Up to 50 results are kept per query. yags shows the first few, depending on `max
 4. copying `copy`
 
 The window closes afterwards.
+
+## Ranking
+
+Sections are ordered by a score. A section without scored results uses the base score of its position:
+
+| Section | Base score |
+|---|---|
+| Plugins with `"position": "top"` | 90 |
+| Apps | 80 |
+| Plugins with `"position": "after-apps"` | 70 |
+| GNOME search providers | 50 |
+| Plugins with `"position": "bottom"` | 30 |
+
+If your results set `score`, your section uses the highest one instead, and moves when it beats another section. The first row of the first section is the Top Hit.
+
+For example, a file search plugin at the bottom can return `"score": 95` for an exact file name match, and it moves above the apps. Without any scores, the order is the same as the table. Sections with the same score keep their `priority` order.
+
+Give an honest score:
+
+| Score | Meaning |
+|---|---|
+| 90 and up | Certainly what the user wants, such as an exact match |
+| 60 to 89 | A strong match |
+| 30 to 59 | A partial match |
+| Below 30 | Only worth showing if nothing else matches |
 
 ## Effects
 
@@ -408,12 +469,15 @@ Put the plugin folder at the root of a git repository. Anyone can then install i
 ```bash
 yags plugin install https://github.com/you/yags-weather
 yags plugin install ./my-local-folder --link    # symlink, for development
+yags plugin update                              # update every plugin installed from git or a folder
+yags plugin update weather
 yags plugin remove weather
 ```
 
 Before publishing, check the following:
 
 - `id` is unique and `api` is `1`
+- `version` goes up with every release, so `yags plugin update` can report it
 - `global` is `false`, unless the plugin is fast and rarely noisy
 - network calls are cached and cancellable
 - there are no secrets in the repository; use a setting for API keys

@@ -44,13 +44,20 @@ def query(request):
     return {"results": results[:30]}
 
 
+def serve():
+    for line in sys.stdin:
+        request = json.loads(line)
+        reply = query(request) if request.get("method") == "query" else {}
+        print(json.dumps({"id": request.get("id"), **reply}), flush=True)
+
+
 def main():
     method = sys.argv[1] if len(sys.argv) > 1 else "query"
+    if method == "serve":
+        serve()
+        return
     request = json.loads(sys.stdin.readline() or "{}")
-    if method == "query":
-        print(json.dumps(query(request)))
-    else:
-        print("{}")
+    print(json.dumps(query(request) if method == "query" else {}))
 
 
 if __name__ == "__main__":

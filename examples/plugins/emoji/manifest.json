@@ -5,6 +5,7 @@
   "version": "1.0.0",
   "author": "yags",
   "type": "script",
+  "persistent": true,
   "main": "plugin.py",
   "keyword": ":",
   "global": false,

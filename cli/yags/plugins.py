@@ -10,6 +10,8 @@ from .settings import string_list
 from .system import run
 from .ui import CliError
 
+API_VERSION = 1
+SOURCE_FILE = ".yags-source.json"
 PLUGIN_ID = re.compile(r"^[a-z0-9][a-z0-9-]{0,40}$")
 KEYWORD = re.compile(r"^\S{1,12}$")
 
@@ -41,27 +43,37 @@ import sys
 def query(request):
     text = request.get("query", "")
     if not text:
-        return []
-    return [{
+        return {"results": []}
+    return {"results": [{
         "title": f"You typed: {text}",
         "subtitle": "Enter copies it",
         "icon": "face-smile-symbolic",
         "copy": text,
         "activate": {"copy": text},
-    }]
+    }]}
 
 
 def activate(request):
     return {}
 
 
+METHODS = {"query": query, "activate": activate}
+
+
+def serve():
+    for line in sys.stdin:
+        request = json.loads(line)
+        reply = METHODS.get(request.get("method"), lambda _r: {})(request)
+        print(json.dumps({"id": request.get("id"), **reply}), flush=True)
+
+
 if __name__ == "__main__":
-    method = sys.argv[1] if len(sys.argv) > 1 else "query"
-    request = json.loads(sys.stdin.readline() or "{}")
-    if method == "query":
-        print(json.dumps({"results": query(request)}))
+    mode = sys.argv[1] if len(sys.argv) > 1 else "query"
+    if mode == "serve":
+        serve()
     else:
-        print(json.dumps(activate(request)))
+        request = json.loads(sys.stdin.readline() or "{}")
+        print(json.dumps(METHODS.get(mode, lambda _r: {})(request)))
 """
 
 SCAFFOLD_BASH = """#!/usr/bin/env bash
@@ -73,6 +85,10 @@ if [ -z "$query" ]; then
 fi
 python3 -c 'import json, sys; q = sys.argv[1]; print(json.dumps({"results": [{"title": "You typed: " + q, "copy": q, "activate": {"copy": q}}]}))' "$query"
 """
+
+
+def is_remote(source):
+    return bool(re.match(r"^(https?://|git@|ssh://)", source))
 
 
 def is_word_keyword(keyword):
@@ -221,7 +237,7 @@ class PluginCatalog:
 
     def install(self, source, link=False):
         with tempfile.TemporaryDirectory() as tmp:
-            if re.match(r"^(https?://|git@|ssh://)", source):
+            if is_remote(source):
                 result = run("git", "clone", "--depth", "1", source, f"{tmp}/plugin")
                 if result is None or result.returncode != 0:
                     raise CliError((result.stderr.strip() if result else "") or "git clone failed")
@@ -231,6 +247,9 @@ class PluginCatalog:
             manifest = self.read_manifest(folder)
             if not manifest:
                 raise CliError(f"{folder} has no valid manifest.json")
+            api = manifest.get("api", API_VERSION)
+            if not isinstance(api, int) or api > API_VERSION:
+                raise CliError(f"{manifest['id']} needs plugin API {api}, this yags supports {API_VERSION}; update yags first")
             target = USER_PLUGINS / manifest["id"]
             remove_path(target)
             USER_PLUGINS.mkdir(parents=True, exist_ok=True)
@@ -238,8 +257,31 @@ class PluginCatalog:
                 target.symlink_to(folder)
             else:
                 shutil.copytree(folder, target, ignore=shutil.ignore_patterns(".git"))
+                (target / SOURCE_FILE).write_text(json.dumps({"source": source if is_remote(source) else str(folder)}) + "\n")
         self.reload()
         return manifest, target, link
+
+    @staticmethod
+    def source_of(manifest):
+        folder = manifest["_dir"]
+        if folder.is_symlink():
+            return None
+        try:
+            return json.loads((folder / SOURCE_FILE).read_text()).get("source")
+        except (OSError, ValueError, AttributeError):
+            return None
+
+    def update(self, manifest):
+        if manifest["_bundled"]:
+            raise CliError(f"{manifest['id']} is bundled; it updates with yags")
+        if manifest["_dir"].is_symlink():
+            raise CliError(f"{manifest['id']} is linked to {manifest['_dir'].resolve()}; it is always up to date")
+        source = self.source_of(manifest)
+        if not source:
+            raise CliError(f"{manifest['id']} has no recorded source; reinstall it with `yags plugin install`")
+        before = manifest.get("version", "")
+        updated, _target, _linked = self.install(source)
+        return before, updated.get("version", "")
 
     def remove(self, manifest):
         if manifest["_bundled"]:

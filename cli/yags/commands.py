@@ -254,7 +254,7 @@ def keyword(ctx, args):
 
 @command("plugin", "list, enable, disable, install, remove, create or configure plugins", aliases=["plugins"],
          arguments=[
-             ("action", {"nargs": "?", "choices": ["list", "info", "enable", "disable", "install", "remove", "new", "config", "reload", "dir"]}),
+             ("action", {"nargs": "?", "choices": ["list", "info", "enable", "disable", "install", "update", "remove", "new", "config", "reload", "dir"]}),
              ("rest", {"nargs": "*"}),
              ("--type", {"choices": ["js", "script"], "default": "js"}),
              ("--lang", {"choices": ["python", "bash"], "default": "python"}),
@@ -286,9 +286,11 @@ def _plugin_info(ctx, args):
     print(bold(f"{m.get('name', m['id'])} {m.get('version', '')}") + f"  ({m['id']})")
     print(f"  {m.get('description', '')}")
     print(f"  prefix    {ctx.plugins.keyword(m) or 'none'}")
-    for key in ("type", "position", "category", "author"):
+    for key in ("type", "position", "category", "author", "api"):
         if m.get(key):
             print(f"  {key:<9} {m[key]}")
+    if m.get("persistent"):
+        print("  process   long-running")
     print(f"  enabled   {fmt(ctx.plugins.is_enabled(m))}")
     print(f"  folder    {m['_dir']}")
     if m.get("settings"):
@@ -332,6 +334,23 @@ def _plugin_install(ctx, args):
     ok(f"installed {manifest['id']} to {target}" + (" (linked)" if linked else ""))
 
 
+def _plugin_update(ctx, args):
+    if args.rest:
+        targets = [ctx.plugins.get(plugin_id) for plugin_id in args.rest]
+    else:
+        targets = [m for m in ctx.plugins.all().values() if not m["_bundled"] and ctx.plugins.source_of(m)]
+        if not targets:
+            print(dim("  no installed plugins with a recorded source"))
+            return
+    for manifest in targets:
+        try:
+            before, after = ctx.plugins.update(manifest)
+        except CliError as error:
+            warn(str(error))
+            continue
+        ok(f"{manifest['id']} {before} -> {after}" if before != after else f"{manifest['id']} {after} is up to date")
+
+
 def _plugin_remove(ctx, args):
     m = ctx.plugins.get(_require_id(args))
     ctx.plugins.remove(m)
@@ -351,6 +370,7 @@ PLUGIN_ACTIONS = {
     "config": _plugin_config,
     "new": _plugin_new,
     "install": _plugin_install,
+    "update": _plugin_update,
     "remove": _plugin_remove,
     "reload": _plugin_reload,
     "dir": lambda _ctx, _args: print(USER_PLUGINS),

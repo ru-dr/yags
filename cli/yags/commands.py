@@ -268,7 +268,7 @@ def _plugin_new(ctx, args):
     ok(f"created {target}")
     print(f"  edit {target / manifest['main']}, then: yags plugin reload")
     if args.type == "js":
-        print(dim("  JavaScript changes load at next login; manifest and script changes reload instantly"))
+        print(dim("  run `yags plugin reload` after editing; no logout needed"))
 
 
 def _plugin_install(ctx, args):

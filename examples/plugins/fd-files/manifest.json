@@ -1,0 +1,22 @@
+{
+  "id": "fd-files",
+  "name": "fd Files",
+  "description": "File search with fd instead of plocate. Change the id to \"files\" to replace the bundled file search.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "script",
+  "main": "plugin.py",
+  "keyword": "fd",
+  "global": false,
+  "position": "bottom",
+  "priority": 60,
+  "category": "files",
+  "icon": "folder-symbolic",
+  "minQueryLength": 2,
+  "timeout": 2000,
+  "settings": [
+    {"key": "root", "type": "string", "default": "~", "title": "Search in"},
+    {"key": "hidden", "type": "bool", "default": false, "title": "Include hidden files"}
+  ]
+}

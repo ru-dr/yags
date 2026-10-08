@@ -37,6 +37,7 @@ The finished examples in [`examples/plugins`](../examples/plugins) are a good pl
 |---|---|---|
 | `hello` | JavaScript | Results, copy, a custom action button, a preview, a setting |
 | `emoji` | Python script | The script protocol, a choice setting, preview details |
+| `fd-files` | Python script | Another file search backend, using `fd` and falling back to `find`. Change its id to `files` to replace the bundled one. |
 
 Install one with `yags plugin install examples/plugins/emoji`.
 

@@ -1,0 +1,15 @@
+{
+  "id": "units",
+  "name": "Units",
+  "description": "Convert length, mass, volume, area, time, speed, data, pressure, energy, angle and temperature.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "position": "top",
+  "priority": 20,
+  "category": "actions",
+  "icon": "accessories-calculator-symbolic",
+  "completion": false
+}

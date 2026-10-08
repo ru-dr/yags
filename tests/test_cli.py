@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+import sys
+import unittest
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "cli"))
+
+from yags.bookmarks import kind_of  # noqa: E402
+from yags.commands import _accelerator  # noqa: E402
+from yags.plugins import is_word_keyword  # noqa: E402
+from yags.settings import parse_variant, quote, string_list  # noqa: E402
+
+
+class VariantTests(unittest.TestCase):
+    def test_parse(self):
+        self.assertIs(parse_variant("true"), True)
+        self.assertEqual(parse_variant("42"), 42)
+        self.assertEqual(parse_variant("'hello'"), "hello")
+        self.assertEqual(parse_variant('"What\'s up"'), "What's up")
+        self.assertEqual(parse_variant("@as []"), [])
+        self.assertEqual(parse_variant("['a', \"b'c\"]"), ["a", "b'c"])
+
+    def test_quote(self):
+        self.assertEqual(quote("it's"), "'it\\'s'")
+        self.assertEqual(string_list(["a", "b"]), "['a', 'b']")
+
+
+class HelperTests(unittest.TestCase):
+    def test_accelerator(self):
+        self.assertEqual(_accelerator("super+space"), "<Super>space")
+        self.assertEqual(_accelerator("Ctrl+Alt+K"), "<Control><Alt>k")
+        self.assertEqual(_accelerator("<Super>space"), "<Super>space")
+
+    def test_keywords(self):
+        self.assertTrue(is_word_keyword("f"))
+        self.assertFalse(is_word_keyword(">"))
+
+    def test_bookmark_kinds(self):
+        self.assertEqual(kind_of("> df -h"), "command")
+        self.assertEqual(kind_of("https://github.com"), "site")
+        self.assertEqual(kind_of("sftp://nas/home"), "location")
+        self.assertEqual(kind_of("~"), "folder")
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -1,23 +1,14 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 import Adw from 'gi://Adw';
+import {page, group} from './widgets.js';
 
-export function buildAboutPage() {
-    const group = new Adw.PreferencesGroup({title: 'About'});
-    group.add(new Adw.ActionRow({
-        title: 'yags',
-        subtitle: 'Yet Another GNOME Search, a macOS-inspired launcher.',
-    }));
-    group.add(new Adw.ActionRow({
-        title: 'Version',
-        subtitle: '1.0.0',
-    }));
-    group.add(new Adw.ActionRow({
-        title: 'Based on',
-        subtitle: 'Spotlight by itsnin, github.com/itsnin/spotlight',
-    }));
-    group.add(new Adw.ActionRow({
-        title: 'License',
-        subtitle: 'GPL-3.0-or-later',
-    }));
-    return group;
+export function buildAboutPage({metadata}) {
+    const rows = [
+        ['yags', 'Yet Another GNOME Search, a launcher with plugins'],
+        ['Version', metadata['version-name'] ?? ''],
+        ['Source', metadata.url ?? ''],
+        ['Based on', 'Spotlight by itsnin'],
+        ['License', 'GPL-3.0-or-later'],
+    ].map(([title, subtitle]) => new Adw.ActionRow({title, subtitle, use_markup: false}));
+    return page('About', 'help-about-symbolic', [group('About', rows)]);
 }

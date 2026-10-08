@@ -1,53 +1,31 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-import Adw from 'gi://Adw';
-import Gtk from 'gi://Gtk';
+import {page, group, choiceRow, spinRow, entryRow} from './widgets.js';
 
 const THEMES = [
-    { value: 'default', label: 'Default', subtitle: 'Follow GNOME system style' },
-    { value: 'dark', label: 'Dark', subtitle: 'Always use dark appearance' },
-    { value: 'light', label: 'Light', subtitle: 'Always use light appearance' },
+    {value: 'default', label: 'Follow system'},
+    {value: 'dark', label: 'Dark'},
+    {value: 'light', label: 'Light'},
+];
+const STYLES = [
+    {value: 'mac', label: 'macOS Spotlight'},
+    {value: 'powertoys', label: 'PowerToys Run'},
 ];
 
-export function buildAppearancePage(settings) {
-    const group = new Adw.PreferencesGroup({
-        title: 'Appearance',
-        description: 'Choose the visual style',
-    });
-
-    const themeRow = new Adw.ComboRow({
-        title: 'Theme',
-        subtitle: 'Dark, light, or follow system',
-    });
-
-    const list = new Gtk.StringList();
-    for (const t of THEMES)
-        list.append(t.label);
-    themeRow.set_model(list);
-
-    const current = settings.get_string('theme-preference');
-    themeRow.set_selected(themeValueToIndex(current));
-
-    themeRow.connect('notify::selected', () => {
-        settings.set_string(
-            'theme-preference',
-            themeIndexToValue(themeRow.get_selected()),
-        );
-    });
-
-    group.add(themeRow);
-    return group;
-}
-
-function themeValueToIndex(value) {
-    for (let i = 0; i < THEMES.length; i++) {
-        if (THEMES[i].value === value)
-            return i;
-    }
-    return 0;
-}
-
-function themeIndexToValue(idx) {
-    if (idx >= 0 && idx < THEMES.length)
-        return THEMES[idx].value;
-    return 'default';
+export function buildAppearancePage({settings}) {
+    return page('Appearance', 'applications-graphics-symbolic', [
+        group('Look', [
+            choiceRow(settings, 'style', 'Style', 'Layout of the bar and results', STYLES),
+            choiceRow(settings, 'theme-preference', 'Theme', 'Dark, light, or follow the system', THEMES),
+            entryRow(settings, 'accent-color', 'Accent color (#rrggbb)'),
+            entryRow(settings, 'placeholder', 'Placeholder text'),
+        ]),
+        group('Size', [
+            spinRow(settings, 'width', 'Width', 'Popup width in pixels', 400, 1200, 10),
+            spinRow(settings, 'top-offset', 'Top offset', 'Percent from the top of the screen', 5, 60),
+            spinRow(settings, 'max-rows', 'Rows per section', 'Results shown for each source', 1, 15),
+            spinRow(settings, 'corner-radius', 'Corner radius', 'The bar, rows and preview follow it', 0, 40),
+            spinRow(settings, 'opacity', 'Opacity', 'Percent', 50, 100),
+            spinRow(settings, 'font-size', 'Bar font size', 'Pixels', 12, 32),
+        ]),
+    ]);
 }

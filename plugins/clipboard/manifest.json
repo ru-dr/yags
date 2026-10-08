@@ -1,0 +1,19 @@
+{
+  "id": "clipboard",
+  "name": "Clipboard",
+  "description": "Search clipboard history from the Copyous extension. Never shown in normal results.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "clip",
+  "global": false,
+  "position": "bottom",
+  "priority": 70,
+  "category": "clipboard",
+  "icon": "edit-paste-symbolic",
+  "minQueryLength": 0,
+  "completion": false,
+  "toggle": "feature-clipboard"
+}

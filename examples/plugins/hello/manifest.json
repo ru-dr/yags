@@ -1,0 +1,23 @@
+{
+  "id": "hello",
+  "name": "Hello",
+  "description": "The smallest possible JavaScript plugin. Copy this folder to start your own.",
+  "version": "1.0.0",
+  "author": "yags",
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "hello",
+  "global": false,
+  "position": "bottom",
+  "priority": 90,
+  "icon": "face-smile-symbolic",
+  "settings": [
+    {
+      "key": "greeting",
+      "type": "string",
+      "default": "Hello",
+      "title": "Greeting"
+    }
+  ],
+  "api": 1
+}

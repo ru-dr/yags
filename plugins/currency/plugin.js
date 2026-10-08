@@ -1,0 +1,134 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+import GLib from 'gi://GLib';
+import Gio from 'gi://Gio';
+import Soup from 'gi://Soup?version=3.0';
+import * as E from '../calc/engine.js';
+
+Gio._promisify(Soup.Session.prototype, 'send_and_read_async');
+
+const RATES_URL = 'https://open.er-api.com/v6/latest/USD';
+const RATES_MAX_AGE_S = 12 * 3600;
+const RETRY_AFTER_MS = 10 * 60 * 1000;
+const SYMBOLS = {'$': 'USD', '€': 'EUR', '£': 'GBP', '¥': 'JPY', '₹': 'INR'};
+const PAIR = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s+(?:to|in|as|into|=|->)\s+([a-zA-Z$€£¥₹]{1,3})\s*$/;
+const SINGLE = /^\s*(.+?)\s*([a-zA-Z$€£¥₹]{1,3})\s*$/;
+
+class Rates {
+    constructor(file) {
+        this._file = file;
+        this._rates = null;
+        this._time = 0;
+        this._pending = null;
+        this._session = null;
+        this._failedAt = 0;
+        this._cancellable = new Gio.Cancellable();
+        try {
+            const [, bytes] = GLib.file_get_contents(file);
+            const data = JSON.parse(new TextDecoder().decode(bytes));
+            this._rates = data.rates;
+            this._time = data.time;
+        } catch {}
+    }
+
+    get updated() {
+        return this._time;
+    }
+
+    get stale() {
+        return !this._rates || Date.now() / 1000 - this._time > RATES_MAX_AGE_S;
+    }
+
+    async get() {
+        if (this.stale && Date.now() - this._failedAt > RETRY_AFTER_MS)
+            await (this._pending ??= this._fetch().finally(() => (this._pending = null)));
+        return this._rates;
+    }
+
+    async _fetch() {
+        const cancellable = this._cancellable;
+        try {
+            this._session ??= new Soup.Session({timeout: 5});
+            const msg = Soup.Message.new('GET', RATES_URL);
+            const bytes = await this._session.send_and_read_async(msg, GLib.PRIORITY_DEFAULT, cancellable);
+            const data = msg.get_status() === 200 && bytes
+                ? JSON.parse(new TextDecoder().decode(bytes.get_data())) : null;
+            if (data?.result !== 'success' || !data.rates) {
+                this._failedAt = Date.now();
+                return;
+            }
+            this._rates = data.rates;
+            this._time = data.time_last_update_unix ?? Math.floor(Date.now() / 1000);
+            GLib.file_set_contents(this._file, JSON.stringify({time: this._time, rates: this._rates}));
+        } catch {
+            if (!cancellable.is_cancelled())
+                this._failedAt = Date.now();
+        }
+    }
+
+    destroy() {
+        this._cancellable.cancel();
+        this._session?.abort();
+    }
+}
+
+function code(name, rates) {
+    const c = SYMBOLS[name] ?? name.toUpperCase();
+    return rates && c in rates ? c : null;
+}
+
+function looksLikeCurrency(name) {
+    return Boolean(SYMBOLS[name]) || /^[a-zA-Z]{3}$/.test(name);
+}
+
+export default class CurrencyPlugin {
+    constructor(api) {
+        this.api = api;
+        this._rates = new Rates(GLib.build_filenamev([api.cacheDir, 'rates.json']));
+        const legacy = GLib.build_filenamev([GLib.get_user_cache_dir(), 'yags', 'rates.json']);
+        if (!this._rates.updated && GLib.file_test(legacy, GLib.FileTest.EXISTS))
+            this._rates = new Rates(legacy);
+    }
+
+    async query({query, cancellable}) {
+        const m = PAIR.exec(query) ?? SINGLE.exec(query);
+        if (!m || !looksLikeCurrency(m[2]) || (m[3] && !looksLikeCurrency(m[3])))
+            return [];
+        let amount;
+        try {
+            amount = E.evaluate(m[1]).value;
+        } catch {
+            return [];
+        }
+        const rates = await this._rates.get();
+        if (cancellable?.is_cancelled() || !rates)
+            return [];
+        const src = code(m[2], rates);
+        const dests = m[3]
+            ? [code(m[3], rates)]
+            : this.api.settings.get('currencies').map(c => code(c, rates)).filter(c => c && c !== src);
+        if (!src || dests.length === 0 || dests.some(d => !d))
+            return [];
+        const when = GLib.DateTime.new_from_unix_local(this._rates.updated).format('%e %b').trim();
+        return dests.map(dest => {
+            const value = amount / rates[src] * rates[dest];
+            const text = value.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            const copy = value.toFixed(2);
+            return {
+                title: `${text} ${dest}`,
+                subtitle: `${E.formatGrouped(amount, 2)} ${src} · rate ${(rates[dest] / rates[src]).toPrecision(6)} · ${when}`,
+                icon: 'accessories-calculator-symbolic',
+                copy,
+                activate: {copy},
+                preview: {
+                    kind: 'Currency',
+                    details: [['From', `${E.formatGrouped(amount, 2)} ${src}`], ['To', `${text} ${dest}`],
+                        ['Rate', (rates[dest] / rates[src]).toPrecision(6)], ['Rates from', when]],
+                },
+            };
+        });
+    }
+
+    destroy() {
+        this._rates.destroy();
+    }
+}

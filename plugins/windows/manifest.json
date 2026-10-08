@@ -1,0 +1,16 @@
+{
+  "id": "windows",
+  "name": "Windows",
+  "description": "Switch to any open window by title or app name.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "win",
+  "position": "after-apps",
+  "priority": 20,
+  "category": "apps",
+  "icon": "focus-windows-symbolic",
+  "minQueryLength": 2
+}

@@ -31,10 +31,25 @@
       <summary>Disabled sources</summary>
       <description>Search sources that never show results, by provider id or desktop id. Manage with `yags provider`.</description>
     </key>
+    <key name="plugin-settings" type="s">
+      <default>'{}'</default>
+      <summary>Plugin settings</summary>
+      <description>JSON object of settings for plugins, keyed by plugin id. Manage with `yags plugin config`.</description>
+    </key>
+    <key name="keywords" type="s">
+      <default>'{}'</default>
+      <summary>Custom prefixes</summary>
+      <description>JSON object mapping plugin id to its prefix, overriding the plugin default. An empty string removes the prefix. Manage with `yags keyword`.</description>
+    </key>
+    <key name="plugins-reload" type="i">
+      <default>0</default>
+      <summary>Plugin reload counter</summary>
+      <description>Changing this rescans the plugin folders. `yags plugin reload` bumps it.</description>
+    </key>
     <key name="feature-keywords" type="b">
       <default>true</default>
       <summary>Prefix keywords</summary>
-      <description>= calculator, &gt; shell, &lt; windows, ? files, ?? web, * bookmarks, : clipboard.</description>
+      <description>Typing a plugin prefix searches only that plugin. Word prefixes like "f" need a space after them.</description>
     </key>
     <key name="feature-row-actions" type="b">
       <default>true</default>

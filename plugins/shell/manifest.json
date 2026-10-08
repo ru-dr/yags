@@ -1,0 +1,40 @@
+{
+  "id": "shell",
+  "name": "Shell",
+  "description": "Run shell commands. Read-only commands show live output as you type.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": ">",
+  "global": false,
+  "position": "bottom",
+  "priority": 80,
+  "category": "actions",
+  "icon": "utilities-terminal-symbolic",
+  "completion": false,
+  "settings": [
+    {
+      "key": "live-preview",
+      "type": "bool",
+      "title": "Live output",
+      "description": "Run allowlisted read-only commands while typing",
+      "gsetting": "feature-shell-preview"
+    },
+    {
+      "key": "preview-commands",
+      "type": "strings",
+      "title": "Live preview allowlist",
+      "description": "Commands that may run while typing, matched on their first words",
+      "gsetting": "shell-preview-commands"
+    },
+    {
+      "key": "terminal",
+      "type": "string",
+      "title": "Terminal",
+      "description": "Empty picks the first installed terminal",
+      "gsetting": "terminal"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "emoji",
+  "name": "Emoji",
+  "description": "Search emoji by name and copy them. An example script plugin written in Python.",
+  "version": "1.0.0",
+  "author": "yags",
+  "type": "script",
+  "main": "plugin.py",
+  "keyword": ":",
+  "global": false,
+  "position": "bottom",
+  "priority": 75,
+  "icon": "face-smile-symbolic",
+  "timeout": 1500,
+  "settings": [
+    {
+      "key": "skin-tone",
+      "type": "choice",
+      "choices": [
+        "none",
+        "light",
+        "medium",
+        "dark"
+      ],
+      "default": "none",
+      "title": "Skin tone",
+      "description": "Applied to emoji that support it"
+    }
+  ],
+  "api": 1
+}

@@ -1,0 +1,15 @@
+{
+  "id": "colors",
+  "name": "Colors",
+  "description": "Hex, rgb() and hsl() colours in every format, with a spectrum and contrast check.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "position": "top",
+  "priority": 5,
+  "category": "actions",
+  "icon": "color-select-symbolic",
+  "completion": false
+}

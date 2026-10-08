@@ -1,0 +1,345 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+import os
+
+from . import VERSION
+from .bookmarks import BookmarkStore, kind_of
+from .doctor import run_doctor, shortcut_conflicts
+from .install import install, uninstall
+from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, UUID
+from .plugins import PluginCatalog, is_word_keyword
+from .settings import Settings, quote
+from .sources import SourceCatalog
+from .system import extension_state, is_active, run
+from .ui import CliError, bold, dim, fmt, ok, table, warn
+
+COMMANDS = []
+MODIFIER_WORDS = {"super": "<Super>", "ctrl": "<Control>", "control": "<Control>", "alt": "<Alt>", "shift": "<Shift>"}
+
+
+def command(name, help_text, aliases=(), arguments=()):
+    def register(function):
+        COMMANDS.append({"name": name, "help": help_text, "aliases": list(aliases), "arguments": arguments, "run": function})
+        return function
+    return register
+
+
+class Context:
+    def __init__(self):
+        self.settings = Settings()
+        self.plugins = PluginCatalog(self.settings)
+        self.sources = SourceCatalog(self.settings, self.plugins)
+        self.bookmarks = BookmarkStore()
+
+    def core_features(self):
+        plugin_keys = self.plugins.plugin_keys()
+        return [k for k in self.settings.keys if k.startswith("feature-") and k not in plugin_keys]
+
+
+def _accelerator(text):
+    if "<" in text:
+        return text
+    *modifiers, key = text.split("+")
+    return "".join(MODIFIER_WORDS.get(m.lower(), "") for m in modifiers) + key.lower()
+
+
+@command("status", "show install state and key settings")
+def status(ctx, _args):
+    print(bold(f"yags {VERSION}") + "  Yet Another GNOME Search")
+    state = extension_state(UUID)
+    if state is None:
+        if (EXTENSION_DIR / "metadata.json").exists():
+            warn("installed, GNOME loads it at next login: log out and back in, then `yags enable`")
+        else:
+            warn("not installed: run `yags install`, then log out and back in")
+        return
+    link = f" -> {EXTENSION_DIR.resolve()}" if EXTENSION_DIR.is_symlink() else ""
+    enabled = [m["id"] for m in ctx.plugins.all().values() if ctx.plugins.is_enabled(m)]
+    print(f"  path      {EXTENSION_DIR}{link}")
+    print(f"  state     {state}")
+    print(f"  shortcut  {ctx.settings.get('toggle-shortcut')[0]}")
+    print(f"  style     {ctx.settings.get('style')}, theme {ctx.settings.get('theme-preference')}")
+    print(f"  plugins   {len(enabled)} on: {', '.join(enabled)}")
+
+
+@command("enable", "turn the extension on")
+def enable(_ctx, _args):
+    result = run("gnome-extensions", "enable", UUID)
+    if result is None or result.returncode != 0:
+        raise CliError("could not enable; after installing, log out and back in first")
+    ok("enabled")
+
+
+@command("disable", "turn the extension off")
+def disable(_ctx, _args):
+    result = run("gnome-extensions", "disable", UUID)
+    if result is None or result.returncode != 0:
+        raise CliError("could not disable")
+    ok("disabled")
+
+
+@command("doctor", "check dependencies, shortcut and prefix conflicts")
+def doctor(ctx, _args):
+    run_doctor(ctx.settings, ctx.plugins)
+
+
+@command("prefs", "open the preferences window")
+def prefs(_ctx, _args):
+    result = run("gnome-extensions", "prefs", UUID)
+    if result is None or result.returncode != 0:
+        raise CliError("could not open preferences, is the extension loaded?")
+
+
+@command("list", "show every setting", aliases=["config"])
+def list_settings(ctx, _args):
+    table([(key, fmt(ctx.settings.get(key)), meta["summary"]) for key, meta in ctx.settings.keys.items()])
+
+
+@command("get", "print one setting", arguments=[("key", {})])
+def get(ctx, args):
+    print(fmt(ctx.settings.get(args.key)))
+
+
+@command("set", "change one setting", arguments=[("key", {}), ("value", {"nargs": "+"})])
+def set_setting(ctx, args):
+    ok(f"{args.key} = {fmt(ctx.settings.set_text(args.key, ' '.join(args.value)))}")
+
+
+@command("reset", "restore defaults", arguments=[("keys", {"nargs": "*"}), ("--all", {"action": "store_true"})])
+def reset(ctx, args):
+    keys = list(ctx.settings.keys) if args.all else args.keys
+    if not keys:
+        raise CliError("name a setting or pass --all")
+    for key in keys:
+        ctx.settings.reset(key)
+        ok(f"{key} reset to {fmt(ctx.settings.get(key))}")
+
+
+@command("feature", "list or toggle interface features",
+         arguments=[("action", {"nargs": "?", "choices": ["list", "on", "off"]}), ("names", {"nargs": "*"})])
+def feature(ctx, args):
+    keys = ctx.core_features()
+    names = [k.removeprefix("feature-") for k in keys]
+    if args.action in (None, "list"):
+        table([(n, fmt(ctx.settings.get(f"feature-{n}")), ctx.settings.keys[f"feature-{n}"]["summary"]) for n in names])
+        return
+    targets = names if args.names == ["all"] else args.names
+    if not targets:
+        raise CliError(f"name a feature: {', '.join(names)}")
+    for name in targets:
+        if name not in names:
+            raise CliError(f"unknown feature {name}, choose from: {', '.join(names)}")
+        ok(f"{name} = {fmt(ctx.settings.set_text(f'feature-{name}', args.action))}")
+
+
+@command("theme", "show or set the theme", arguments=[("value", {"nargs": "?", "choices": ["default", "dark", "light"]})])
+def theme(ctx, args):
+    print(fmt(ctx.settings.set_text("theme-preference", args.value) if args.value else ctx.settings.get("theme-preference")))
+
+
+@command("style", "show or set the look", arguments=[("value", {"nargs": "?", "choices": ["mac", "powertoys"]})])
+def style(ctx, args):
+    print(fmt(ctx.settings.set_text("style", args.value) if args.value else ctx.settings.get("style")))
+
+
+@command("accent", "show or set the accent colour, e.g. #ff375f", arguments=[("value", {"nargs": "?"})])
+def accent(ctx, args):
+    print(fmt(ctx.settings.set_text("accent-color", args.value) if args.value else ctx.settings.get("accent-color")))
+
+
+@command("shortcut", "show or set the toggle shortcut, e.g. super+space", arguments=[("value", {"nargs": "?"})])
+def shortcut(ctx, args):
+    if not args.value:
+        print(ctx.settings.get("toggle-shortcut")[0])
+        return
+    accelerator = _accelerator(args.value)
+    ctx.settings.set_variant("toggle-shortcut", f"[{quote(accelerator)}]")
+    ok(f"shortcut = {accelerator}")
+    for where in shortcut_conflicts(accelerator):
+        warn(f"also bound in {where}")
+
+
+@command("source", "list or toggle search sources, e.g. contacts", aliases=["provider"],
+         arguments=[("action", {"nargs": "?", "choices": ["list", "on", "off"]}), ("names", {"nargs": "*"})])
+def source(ctx, args):
+    sources = ctx.sources.all()
+    if args.action in (None, "list"):
+        table([(name, ctx.sources.state(s), s["label"]) for name, s in sources.items()])
+        return
+    targets = list(sources) if args.names == ["all"] else args.names
+    if not targets:
+        raise CliError(f"name a source: {', '.join(sources)}")
+    for name in targets:
+        if name not in sources:
+            raise CliError(f"unknown source {name}, see `yags source`")
+        if ctx.sources.set_enabled(sources[name], args.action == "on"):
+            warn(f"{name} was also off in GNOME Settings, turned that on too")
+        ok(f"{name} {args.action}")
+
+
+@command("keyword", "list prefixes, or set one: yags keyword files find", aliases=["keywords"],
+         arguments=[("plugin", {"nargs": "?"}), ("prefix", {"nargs": "?", "help": "a prefix, none, or default"})])
+def keyword(ctx, args):
+    if args.plugin is None:
+        rows = []
+        for manifest in sorted(ctx.plugins.all().values(), key=lambda m: m["id"]):
+            prefix = ctx.plugins.keyword(manifest)
+            usage = f"{prefix} query" if prefix and is_word_keyword(prefix) else f"{prefix}query" if prefix else "automatic"
+            state = "" if ctx.plugins.is_enabled(manifest) else " (off)"
+            rows.append((manifest["id"], prefix or "-", f"{usage}{state}"))
+        table(rows)
+        print(dim("  change one: yags keyword PLUGIN PREFIX   (none removes it, default restores it)"))
+        return
+    manifest = ctx.plugins.get(args.plugin)
+    if args.prefix is None:
+        print(ctx.plugins.keyword(manifest) or "none")
+        return
+    ctx.plugins.set_keyword(manifest, args.prefix)
+    ok(f"{manifest['id']} prefix = {ctx.plugins.keyword(manifest) or 'none'}")
+
+
+@command("plugin", "list, enable, disable, install, remove, create or configure plugins", aliases=["plugins"],
+         arguments=[
+             ("action", {"nargs": "?", "choices": ["list", "info", "enable", "disable", "install", "remove", "new", "config", "reload", "dir"]}),
+             ("rest", {"nargs": "*"}),
+             ("--type", {"choices": ["js", "script"], "default": "js"}),
+             ("--lang", {"choices": ["python", "bash"], "default": "python"}),
+             ("--link", {"action": "store_true", "help": "install: symlink a local folder"}),
+         ])
+def plugin(ctx, args):
+    action = args.action or "list"
+    handler = PLUGIN_ACTIONS.get(action)
+    handler(ctx, args)
+
+
+def _plugin_list(ctx, _args):
+    rows = []
+    for plugin_id, m in sorted(ctx.plugins.all().items()):
+        prefix = ctx.plugins.keyword(m) or "-"
+        source = "bundled" if m["_bundled"] else "user"
+        rows.append((plugin_id, fmt(ctx.plugins.is_enabled(m)), m.get("type", "?"), prefix, source, m.get("name", "")))
+    table(rows)
+
+
+def _require_id(args):
+    if not args.rest:
+        raise CliError(f"usage: yags plugin {args.action} ID")
+    return args.rest[0]
+
+
+def _plugin_info(ctx, args):
+    m = ctx.plugins.get(_require_id(args))
+    print(bold(f"{m.get('name', m['id'])} {m.get('version', '')}") + f"  ({m['id']})")
+    print(f"  {m.get('description', '')}")
+    print(f"  prefix    {ctx.plugins.keyword(m) or 'none'}")
+    for key in ("type", "position", "category", "author"):
+        if m.get(key):
+            print(f"  {key:<9} {m[key]}")
+    print(f"  enabled   {fmt(ctx.plugins.is_enabled(m))}")
+    print(f"  folder    {m['_dir']}")
+    if m.get("settings"):
+        print("  settings")
+        table([(d["key"], fmt(ctx.plugins.setting(m, d)), d.get("title", "")) for d in m["settings"]])
+
+
+def _plugin_toggle(ctx, args):
+    m = ctx.plugins.get(_require_id(args))
+    ctx.plugins.set_enabled(m, args.action == "enable")
+    ok(f"{m['id']} {'on' if args.action == 'enable' else 'off'}")
+
+
+def _plugin_config(ctx, args):
+    m = ctx.plugins.get(_require_id(args))
+    definitions = {d["key"]: d for d in m.get("settings", [])}
+    if len(args.rest) == 1:
+        _plugin_info(ctx, args)
+        return
+    definition = definitions.get(args.rest[1])
+    if not definition:
+        raise CliError(f"{m['id']} has no setting {args.rest[1]}; available: {', '.join(definitions) or 'none'}")
+    if len(args.rest) == 2:
+        print(fmt(ctx.plugins.setting(m, definition)))
+        return
+    value = ctx.plugins.set_setting(m, definition, " ".join(args.rest[2:]))
+    ok(f"{m['id']}.{definition['key']} = {fmt(value)}")
+
+
+def _plugin_new(ctx, args):
+    target, manifest = ctx.plugins.create(_require_id(args), args.type, args.lang, os.environ.get("USER", ""))
+    ok(f"created {target}")
+    print(f"  edit {target / manifest['main']}, then: yags plugin reload")
+    if args.type == "js":
+        print(dim("  JavaScript changes load at next login; manifest and script changes reload instantly"))
+
+
+def _plugin_install(ctx, args):
+    warn("plugins run with your user permissions; only install plugins you trust")
+    manifest, target, linked = ctx.plugins.install(_require_id(args), link=args.link)
+    ok(f"installed {manifest['id']} to {target}" + (" (linked)" if linked else ""))
+
+
+def _plugin_remove(ctx, args):
+    m = ctx.plugins.get(_require_id(args))
+    ctx.plugins.remove(m)
+    ok(f"removed {m['id']}")
+
+
+def _plugin_reload(ctx, _args):
+    ctx.plugins.reload()
+    ok("plugins reloaded")
+
+
+PLUGIN_ACTIONS = {
+    "list": _plugin_list,
+    "info": _plugin_info,
+    "enable": _plugin_toggle,
+    "disable": _plugin_toggle,
+    "config": _plugin_config,
+    "new": _plugin_new,
+    "install": _plugin_install,
+    "remove": _plugin_remove,
+    "reload": _plugin_reload,
+    "dir": lambda _ctx, _args: print(USER_PLUGINS),
+}
+
+
+@command("bookmark", "yags bookmarks: list, add NAME TARGET, rm NAME", aliases=["bm"],
+         arguments=[
+             ("action", {"nargs": "?", "choices": ["list", "add", "rm", "remove", "path"]}),
+             ("rest", {"nargs": "*"}),
+             ("--type", {"choices": ["file", "folder", "site", "location", "command"]}),
+             ("--tag", {"action": "append"}),
+         ])
+def bookmark(ctx, args):
+    action = args.action or "list"
+    if action == "list":
+        items = ctx.bookmarks.load()
+        if not items:
+            print("  no bookmarks yet, add one: yags bookmark add docs ~/Documents")
+        table([(b["name"], b.get("type") or kind_of(b["target"]), b["target"]) for b in items])
+    elif action == "add":
+        if len(args.rest) < 2:
+            raise CliError("usage: yags bookmark add NAME TARGET   (a path, URL, sftp://… or '> command')")
+        entry = ctx.bookmarks.add(args.rest[0], " ".join(args.rest[1:]), args.type, args.tag)
+        ok(f"bookmarked {entry['name']} ({entry['type']}) -> {entry['target']}")
+    elif action in ("rm", "remove"):
+        if not args.rest:
+            raise CliError("usage: yags bookmark rm NAME")
+        ctx.bookmarks.remove(args.rest)
+        ok(f"removed {', '.join(args.rest)}")
+    else:
+        print(BOOKMARKS_FILE)
+
+
+@command("install", "install this checkout into GNOME Shell",
+         arguments=[("--link", {"action": "store_true", "help": "symlink instead of copying, for development"})])
+def install_command(_ctx, args):
+    cli = install(link=args.link)
+    ok(f"installed to {EXTENSION_DIR}" + (" (linked)" if args.link else ""))
+    ok(f"cli linked at {cli}")
+    print("  log out and back in to load it" + ("" if is_active(extension_state(UUID)) else ", then run: yags enable"))
+
+
+@command("uninstall", "remove the extension, keeping settings")
+def uninstall_command(_ctx, _args):
+    uninstall()
+    ok("uninstalled; `yags reset --all` before uninstalling clears settings")

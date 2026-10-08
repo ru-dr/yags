@@ -1,0 +1,15 @@
+{
+  "id": "time",
+  "name": "Time",
+  "description": "The current time in several formats, and Unix timestamps as dates.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "position": "top",
+  "priority": 50,
+  "category": "actions",
+  "icon": "x-office-calendar-symbolic",
+  "completion": false
+}

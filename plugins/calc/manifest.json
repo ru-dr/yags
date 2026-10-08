@@ -1,0 +1,16 @@
+{
+  "id": "calc",
+  "name": "Calculator",
+  "description": "Math, functions, constants, hex/binary/octal, bitwise and base conversion.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "=",
+  "position": "top",
+  "priority": 10,
+  "category": "actions",
+  "icon": "accessories-calculator-symbolic",
+  "completion": false
+}

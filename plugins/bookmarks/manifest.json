@@ -1,0 +1,14 @@
+{
+  "id": "bookmarks",
+  "name": "Bookmarks",
+  "description": "Your own bookmarks for files, folders, locations, commands and sites. *+ adds one.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "*",
+  "position": "after-apps",
+  "priority": 10,
+  "icon": "user-bookmarks-symbolic"
+}

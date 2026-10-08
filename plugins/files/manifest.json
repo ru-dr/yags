@@ -1,0 +1,26 @@
+{
+  "id": "files",
+  "name": "Files",
+  "description": "Fast file search with the plocate index, recently used files and a live view of your home folders.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "f",
+  "position": "bottom",
+  "priority": 60,
+  "category": "files",
+  "icon": "folder-symbolic",
+  "minQueryLength": 2,
+  "toggle": "feature-file-search",
+  "settings": [
+    {
+      "key": "exclude-paths",
+      "type": "strings",
+      "title": "Excluded paths",
+      "description": "Path fragments that never show up",
+      "gsetting": "exclude-paths"
+    }
+  ]
+}

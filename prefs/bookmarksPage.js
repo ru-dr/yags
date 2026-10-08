@@ -15,7 +15,7 @@ const ICONS = {
     file: 'text-x-generic-symbolic',
 };
 
-export function buildBookmarksPage(window) {
+export function buildBookmarksPage({window}) {
     const page = new Adw.PreferencesPage({
         title: 'Bookmarks',
         icon_name: 'user-bookmarks-symbolic',
@@ -67,7 +67,7 @@ export function buildBookmarksPage(window) {
         }
         for (const b of list) {
             const kind = b.type ?? Bookmarks.kindOf(b.target);
-            const row = new Adw.ActionRow({title: b.name, subtitle: b.target, subtitle_lines: 1});
+            const row = new Adw.ActionRow({title: b.name, subtitle: b.target, subtitle_lines: 1, use_markup: false});
             row.add_prefix(new Gtk.Image({icon_name: ICONS[kind] ?? 'user-bookmarks-symbolic'}));
             const del = new Gtk.Button({icon_name: 'user-trash-symbolic', tooltip_text: 'Remove', valign: Gtk.Align.CENTER, css_classes: ['flat']});
             del.connect('clicked', () => {

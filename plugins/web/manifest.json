@@ -1,0 +1,38 @@
+{
+  "id": "web",
+  "name": "Web",
+  "description": "Search the web, site shortcuts like \"yt lofi\", and opening URLs.",
+  "version": "1.0.0",
+  "author": "yags",
+  "api": 1,
+  "type": "js",
+  "main": "plugin.js",
+  "keyword": "?",
+  "position": "bottom",
+  "priority": 100,
+  "icon": "web-browser-symbolic",
+  "completion": false,
+  "settings": [
+    {
+      "key": "fallback",
+      "type": "bool",
+      "title": "Search the web row",
+      "description": "Offer a web search at the end of every search",
+      "gsetting": "feature-web-fallback"
+    },
+    {
+      "key": "engine",
+      "type": "string",
+      "title": "Search engine",
+      "description": "URL with %s for the query",
+      "gsetting": "search-engine"
+    },
+    {
+      "key": "shortcuts",
+      "type": "strings",
+      "title": "Site shortcuts",
+      "description": "key|Name|url entries",
+      "gsetting": "web-shortcuts"
+    }
+  ]
+}

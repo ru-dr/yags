@@ -1,165 +1,232 @@
+<div align="center">
+
 # yags
 
-**Yet Another GNOME Search.** A macOS-inspired launcher for GNOME Shell 48 to 51 on Wayland, with PowerToys Run style plugins.
+**Yet Another GNOME Search**
 
-Press `Super + Space`, type, hit `Enter`.
+A macOS-inspired, keyboard-first launcher for GNOME Shell, with PowerToys Run style plugins.
 
-📖 **Full documentation: [the yags wiki](https://github.com/ru-dr/yags/wiki)**
+`Super + Space`, type, `Enter`.
+
+![GNOME Shell 48–51](https://img.shields.io/badge/GNOME_Shell-48--51-4a86cf?logo=gnome&logoColor=white)
+![Wayland](https://img.shields.io/badge/Wayland-ready-success)
+![Plugin API v1](https://img.shields.io/badge/plugin_API-v1-8a2be2)
+![License GPL-3.0](https://img.shields.io/badge/license-GPL--3.0-blue)
+
+![yags](docs/screenshots/hero.png)
+
+</div>
 
 ---
 
+## Why
+
+GNOME's Overview search is good, but it is tied to the Overview. yags replaces it with a floating search bar that opens over any window, even fullscreen video, and adds the things you would otherwise need five different tools for: a calculator, unit and currency conversion, colour tools, a live shell, bookmarks, clipboard history and fast file search.
+
+Every one of those features is a **plugin**. You can turn each one off, give it your own prefix, or write your own in JavaScript, Python, Bash or anything else that can read and write JSON.
+
+## Highlights
+
+| | |
+|---|---|
+| ![Calculator](docs/screenshots/calculator.png) | ![Colours](docs/screenshots/colors.png) |
+| **Calculator and dev tools.** Just type `2^10 / 3`, `0xff to bin` or `sqrt 2`. No `=` needed. | **Colours.** `#0a84ff`, `rgb()` or `hsl()`: every format, a five-step spectrum and WCAG contrast. |
+| ![Shell](docs/screenshots/shell.png) | ![Currency](docs/screenshots/currency.png) |
+| **Live shell.** `> ls -la` shows the output as you type. Only safe, read-only commands run in the preview. | **Currency and units.** `50 usd to inr`, `10 km to mi`, `1 GiB to MB`. |
+| ![Bookmarks](docs/screenshots/bookmarks.png) | ![Emoji plugin](docs/screenshots/plugin-emoji.png) |
+| **Bookmarks.** Files, folders, locations, commands and sites. `Ctrl + D` on any result adds one. | **Your own plugins.** This emoji picker is a 60-line Python script. |
+
+- **Top Hit**, inline completion, a preview pane, and a bar icon that follows the selection
+- Filters for Apps, Files, Actions and Clipboard (`Super + 1` to `4`)
+- Row actions: open in a new window, show in folder, copy, bookmark
+- Fast file search with `plocate`, plus recent files and a live view of your home folders
+- Opens over fullscreen apps, and `Super + Space` never leaks a key press into the app behind it
+- Uses your system font and follows the light or dark theme, with your own accent colour
+- A full CLI (`yags`) and a preferences window, and every change applies live
+- Two looks: the default Mac style, or `yags style powertoys` for a single window
+
+<details>
+<summary>PowerToys style</summary>
+
+![PowerToys style](docs/screenshots/powertoys.png)
+
+</details>
+
 ## Install
+
+You need GNOME Shell 48 or newer. `plocate` (file search) and the Copyous extension (clipboard) are optional.
 
 ```bash
 git clone https://github.com/ru-dr/yags.git
 cd yags
-./bin/yags install          # copies into ~/.local/share/gnome-shell/extensions/yags@ru-dr
-                            # and links the yags CLI into ~/.local/bin
-# log out and back in (Wayland loads new extensions only at login)
-yags enable
-yags doctor
+./bin/yags install       # installs the extension and links the yags CLI into ~/.local/bin
 ```
 
-`./bin/yags install --link` symlinks the checkout instead, for development.
+Log out and back in, because Wayland only loads new extensions at login. Then run:
 
-**Optional:** `plocate` for file search, and Copyous for clipboard history.
+```bash
+yags enable
+yags doctor              # checks dependencies, shortcut and prefix conflicts
+```
 
----
+For development, `./bin/yags install --link` symlinks the checkout instead.
 
-## Prefixes
+## Using it
 
-Type a prefix to search only one plugin. Without a prefix, everything is searched together.
+Type anything and every source is searched together. Calculator, units, currency, colours, time and generators answer on their own when the query looks like one of theirs.
+
+A **prefix** limits the search to one plugin. Symbol prefixes work right away (`>ls`), and word prefixes need a space (`f report`).
 
 | Prefix | Plugin | Example |
 |---|---|---|
-| `=` | Calculator | `= 2pi`, `= sqrt(2)*3` |
-| `>` | Shell | `> pwd` shows live output, `Enter` runs in a terminal |
-| `<` | Open windows | `< firefox` |
-| `?` | Files | `? report` |
-| `??` | Web search | `?? gnome shell` |
+| `=` | Calculator, only | `= 2pi` |
+| `>` | Shell | `> git status` |
+| `?` | Web | `? gnome shell`, `yt lofi` |
 | `*` | Bookmarks | `* docs`, `*+ ~/Projects` adds one |
-| `:` | Clipboard | `: password` |
+| `f` | Files | `f invoice` |
+| `win` | Open windows | `win firefox` |
+| `clip` | Clipboard | `clip password` |
 
-`yags keywords` prints this list. `yags feature off keywords` turns prefixes off.
-
-## Plugins
-
-**Calculator and dev tools.** These work without a prefix whenever the query looks like one:
-- **Math:** `+ - * / % ^ **`, `//` (floor division), `mod`, `!`, parentheses, and functions (`sqrt cbrt abs sin cos tan asin acos atan ln log log2 log10 exp floor ceil round min max pow hypot gcd lcm avg sum deg rad`). Constants: `pi e tau phi`.
-- **Bases and bitwise:** `0xff`, `0b1010`, `0o17`, `&`, `|`, `xor`, `~`, `<<`, `>>`. Results also show hex, binary and octal. `255 to hex`, `0xff to dec`.
-- **Units:** length, mass, volume, area, time, speed, data (`GiB`, `MB`, `Mb`), pressure, energy, angle, temperature. `10 km to mi`, `100 f in c`, `1 GiB to MB`.
-- **Currency:** `50 usd to inr`, `100 eur` (converts into the `currencies` list). Daily rates from open.er-api.com, cached in `~/.cache/yags/rates.json`.
-- **Generators:** `uuid`, `md5|sha1|sha256|sha384|sha512 text`, `base64 text`, `base64d text`, `url text`, `urldecode text`, `password 24`, `random 1 100`.
-- **Time:** `now` (local, ISO 8601, Unix seconds and milliseconds), and a 10 or 13 digit Unix timestamp gives its date.
-- **Colours:** `#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`, `hsl()`. Rows for HEX, RGB, HSL, HSV and CMYK. The preview shows a five-step spectrum (two darker shades, the colour, two lighter tints; click one to copy it), plus contrast against white and black with the WCAG grade, and luminance.
-
-`Enter` copies any calculator result.
-
-**Shell (`>`).** `> pwd`, `> ls`, `> git status` and other read-only commands show live output in the preview as you type. `Enter` runs any command in your terminal. Live previews:
-- only run commands on the `shell-preview-commands` allowlist
-- run without a shell, so globs, pipes, redirects and substitutions do nothing
-- never run anything containing `; | & < > $ ( ) { } [ ] * ? = !`, a backtick, or options like `-o`/`--output`
-- stop after 2 seconds or 6000 characters
-
-**Bookmarks.** yags keeps its own bookmarks for files, folders, locations, commands and sites. They show up in normal results, or use `*` to search only bookmarks. There are three ways to add one:
-
-- **From any result:** select a file, folder, URL or shell command and press `Ctrl + D`, or click ☆ on the row. On a bookmark, `Ctrl + D` or the trash button removes it.
-- **By typing:** `*+ ~/Projects`, `*+ docs ~/Documents`, `*+ gh https://github.com/ru-dr`, `*+ nas sftp://nas.local/home`, `*+ disk usage > df -h`, then `Enter`. The name is optional.
-- **Preferences → Bookmarks:** add with file and folder pickers, see all bookmarks, delete them.
-
-The CLI works too:
+Prefixes are yours to change:
 
 ```bash
-yags bookmark add docs ~/Documents
-yags bookmark list
-yags bookmark rm docs
+yags keyword                 # list them
+yags keyword files /         # files now uses "/"
+yags keyword windows none    # no prefix
+yags keyword files default   # back to "f"
 ```
 
-**Web.**
-- Every search ends with a "Search the web" row.
-- Typing a URL or domain opens it.
-- Site shortcuts: `g`, `ddg`, `yt`, `gh`, `w`, `maps`, `r`, `so`, `mdn`, `npm`, `pypi`, `aw` (for example `yt lofi`). Configure them with `yags set web-shortcuts 'key|Name|https://site/?q=%s, …'`.
+You can also change them in **Preferences → Plugins**.
 
-**Windows (`<`).** Switch to any open window by title or app name.
-
-**Files (`?`).** Uses the plocate index, plus recently used files and a live listing of your home folder, Desktop, Documents, Downloads, Pictures, Music and Videos. Ranked by name match, recency and depth. Package caches are skipped (`exclude-paths`).
-
-**Clipboard (`:` or `Super + 4`).** Searches your Copyous history. `Enter` copies the entry.
-
----
-
-## Look and feel
-
-- A floating pill search bar, with results in a separate card below and a preview pane beside them.
-- **Top Hit**, **inline completion** (`Tab` or `→` accepts it), and the bar icon follows the selected result.
-- Action buttons on the selected row: new window, open containing folder, copy.
-- Filter buttons for Apps, Files, Actions and Clipboard (`Super + 1` to `4`).
-- Remembers the last search, and opens with a slight bounce.
-- `yags style powertoys` switches to a single-window PowerToys Run layout, `yags style mac` switches back.
-
-## Keys
+### Keys
 
 | Key | Action |
 |---|---|
 | `Super + Space` | Open or close |
-| `Super` / `Esc` | Close |
+| `Super` or `Esc` | Close |
 | `↑` `↓` | Move through results |
-| `Tab` `→` | Accept the inline completion |
-| `Enter` | Open or run the selected result |
+| `Tab` or `→` | Accept the inline completion |
+| `Enter` | Open or run |
 | `Ctrl + Enter` | New window of the selected app |
-| `Ctrl + Shift + E` / `Super + Enter` | Open the containing folder |
-| `Ctrl + Shift + C` / `Super + C` | Copy the path or value |
-| `Ctrl + D` | Bookmark the selected file, folder, URL or command, or remove a bookmark |
+| `Ctrl + Shift + E` or `Super + Enter` | Show in folder |
+| `Ctrl + Shift + C` or `Super + C` | Copy the path or value |
+| `Ctrl + D` | Bookmark the selection, or remove a bookmark |
 | `Super + 1` to `4` | Apps, Files, Actions, Clipboard filter |
 | `Backspace` on an empty bar | Clear the filter |
 
----
+## What is a plugin, and what is GNOME
+
+yags does not use GNOME's search UI, but it does reuse GNOME's **search providers**: apps, Settings panels, and anything an app registers (Files, Calendar, Contacts and others). Everything else is a yags plugin.
+
+| Comes from GNOME | yags plugins (bundled) |
+|---|---|
+| Apps, Settings, and app search providers | calc, units, currency, colors, generators, time, shell, web, bookmarks, files, windows, clipboard |
+| `yags source` lists and toggles them | `yags plugin` lists and toggles them |
+
+```bash
+yags source off contacts calendar
+yags plugin disable currency
+```
+
+## Plugins
+
+A plugin is a folder with a `manifest.json` and either a JavaScript module or any executable. Drop it in `~/.local/share/yags/plugins/`. It can add results, previews, row buttons and its own settings, which appear in the preferences window automatically.
+
+```bash
+yags plugin new weather                          # JavaScript
+yags plugin new todo --type script --lang python # or Python, or --lang bash
+yags plugin install https://github.com/you/yags-plugin-x
+yags plugin reload
+```
+
+A complete JavaScript plugin:
+
+```js
+export default class Hello {
+    constructor(api) {
+        this.api = api;
+    }
+
+    query({query}) {
+        const text = `Hello, ${query || 'world'}!`;
+        return [{title: text, icon: 'face-smile-symbolic', copy: text}];
+    }
+}
+```
+
+A complete script plugin, in any language:
+
+```python
+#!/usr/bin/env python3
+import json, sys
+
+request = json.loads(sys.stdin.readline())
+if sys.argv[1] == "query":
+    q = request["query"]
+    print(json.dumps({"results": [{"title": q.upper(), "copy": q.upper()}]}))
+```
+
+**📘 Read the [plugin guide](docs/PLUGINS.md)** for the manifest, the API, previews, actions and settings. Working examples are in [`examples/plugins`](examples/plugins).
 
 ## Configure
 
-Everything applies live, no log out needed.
+Everything applies live, with no logout.
 
 ```bash
-yags                              # status and help
-yags list                         # every setting
-yags feature                      # feature switches
-yags feature off preview bounce
-yags provider                     # every search source, with on/off state
-yags provider off contacts calendar
-yags style mac                    # mac | powertoys
-yags theme dark                   # default | dark | light
-yags shortcut super+space
+yags                          # status
+yags prefs                    # graphical preferences
+yags list                     # every setting
+yags style mac                # mac | powertoys
+yags theme dark               # default | dark | light
 yags accent '#ff375f'
-yags set corner-radius 14         # the card, bar, rows and preview all follow it
+yags shortcut super+space
+yags set corner-radius 18
 yags set width 760
 yags set max-rows 7
-yags set font-size 22
-yags set opacity 90
-yags set top-offset 25
-yags set placeholder 'Search anything'
 yags set search-engine 'https://duckduckgo.com/?q=%s'
 yags set currencies 'USD, EUR, INR'
 yags set terminal kitty
+yags feature off bounce preview
+yags bookmark add docs ~/Documents
 yags reset --all
-yags prefs                        # graphical preferences
-yags doctor                       # dependencies and shortcut conflicts
 ```
 
-Feature switches: `top-hit`, `completion`, `bar-icon`, `preview`, `filters`, `remember-query`, `bounce`, `file-search`, `clipboard`, `file-actions`, `calculator-style`, `keywords`, `row-actions`, `currency`, `web-fallback`, `shell-preview`.
-
----
+The full reference is in the [wiki](https://github.com/ru-dr/yags/wiki).
 
 ## Troubleshooting
 
-- **The bar is invisible, or GNOME search breaks at login:** an extension is hiding the Overview search (Just Perfection's *Search* option). Turn that option on.
-- **`Super + Space` does nothing:** `yags doctor` lists anything else bound to the same keys.
-- **A new file doesn't show up:** plocate reindexes daily. `sudo updatedb` refreshes it now.
-- **No currency results:** check your connection. Rates are fetched at most every 12 hours, and failures retry after 10 minutes.
+- **The bar is invisible, or typing does nothing.** Another extension is hiding the Overview search, such as Just Perfection's *Search* option. Turn that option back on.
+- **`Super + Space` does nothing.** Run `yags doctor`, which lists anything else bound to the same keys.
+- **A new file doesn't show up.** plocate reindexes once a day. Run `sudo updatedb` to refresh it now.
+- **A plugin doesn't load.** It is listed under *Not loaded* in Preferences → Plugins, with the reason. `journalctl --user -f -o cat | grep yags` shows its log.
+- **Code changes don't apply.** On Wayland, GNOME Shell only reloads extension code at login. Settings and plugin reloads are live.
 
----
+## Development
+
+```bash
+npm install          # ESLint, for make lint
+make check           # syntax, schema, lint, JS and Python tests
+make link            # install as a symlink
+make zip             # build an extensions.gnome.org bundle
+```
+
+The code is laid out like this:
+
+| Path | Contents |
+|---|---|
+| `lib/core` | Config, patching and stylesheets |
+| `lib/overview` | Taking over Overview search |
+| `lib/results` | Result list layout and preview |
+| `lib/launcher` | The window, keys and actions |
+| `lib/plugins` | The plugin host |
+| `plugins/` | Bundled plugins |
+| `prefs/` | Preferences pages |
+| `cli/` | The `yags` tool |
+
+Issues and pull requests are welcome.
 
 ## Credits
 
-yags is a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin, reworked by [ru-dr](https://github.com/ru-dr).
+yags started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin, and was rewritten by [ru-dr](https://github.com/ru-dr). It is inspired by macOS Spotlight and PowerToys Run, but is not affiliated with either.
 
-GPL-3.0-or-later, see [LICENSE](LICENSE).
+Licensed under [GPL-3.0-or-later](LICENSE).

@@ -6,7 +6,8 @@ The first public release.
 
 ### Launcher
 
-- A floating search bar on `Super + Space`, with the Mac look by default and an optional PowerToys look
+- A floating search bar on `Super + Space`
+- Custom CSS styles in `~/.config/yags/styles`, applied live as you edit them
 - Top Hit, inline completion, a preview pane, and a bar icon that follows the selection
 - Filters for Apps, Files, Actions and Clipboard
 - Row actions: new window, show in folder, copy, bookmark
@@ -26,6 +27,6 @@ The first public release.
 
 ### Tools
 
-- `yags` CLI for settings, features, sources, prefixes, plugins and bookmarks
+- `yags` CLI for settings, features, sources, prefixes, plugins, styles and bookmarks
 - `yags doctor`
 - Preferences window with Plugins and Bookmarks pages

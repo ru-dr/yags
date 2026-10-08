@@ -18,13 +18,9 @@
     </key>
 
     <key name="style" type="s">
-      <choices>
-        <choice value="powertoys"/>
-        <choice value="mac"/>
-      </choices>
-      <default>'mac'</default>
-      <summary>Look</summary>
-      <description>mac is a floating pill with sectioned results, powertoys is one window with two-line rows.</description>
+      <default>''</default>
+      <summary>Custom style</summary>
+      <description>Name of a CSS file in ~/.config/yags/styles, without .css. Empty uses the built-in look.</description>
     </key>
     <key name="disabled-providers" type="as">
       <default>['org.gnome.Calculator.desktop']</default>

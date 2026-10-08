@@ -1,20 +1,29 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
-import {page, group, choiceRow, spinRow, entryRow} from './widgets.js';
+import Gio from 'gi://Gio';
+import GLib from 'gi://GLib';
+import {STYLES_DIR, listStyles} from '../lib/core/userStyles.js';
+import {page, group, choiceRow, spinRow, entryRow, buttonRow} from './widgets.js';
 
 const THEMES = [
     {value: 'default', label: 'Follow system'},
     {value: 'dark', label: 'Dark'},
     {value: 'light', label: 'Light'},
 ];
-const STYLES = [
-    {value: 'mac', label: 'macOS Spotlight'},
-    {value: 'powertoys', label: 'PowerToys Run'},
-];
+
+function styleChoices() {
+    return [{value: '', label: 'Built-in'}, ...listStyles().map(name => ({value: name, label: name}))];
+}
+
+function openStylesFolder() {
+    GLib.mkdir_with_parents(STYLES_DIR, 0o755);
+    Gio.AppInfo.launch_default_for_uri(GLib.filename_to_uri(STYLES_DIR, null), null);
+}
 
 export function buildAppearancePage({settings}) {
     return page('Appearance', 'applications-graphics-symbolic', [
         group('Look', [
-            choiceRow(settings, 'style', 'Style', 'Layout of the bar and results', STYLES),
+            choiceRow(settings, 'style', 'Style', 'A CSS file from your styles folder, applied on top of the built-in look', styleChoices()),
+            buttonRow('Styles folder', STYLES_DIR, [{label: 'Open', onClicked: openStylesFolder}]),
             choiceRow(settings, 'theme-preference', 'Theme', 'Dark, light, or follow the system', THEMES),
             entryRow(settings, 'accent-color', 'Accent color (#rrggbb)'),
             entryRow(settings, 'placeholder', 'Placeholder text'),

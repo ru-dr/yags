@@ -1,0 +1,18 @@
+.yags-bar,
+.yags-results,
+.yags-preview,
+.list-search-result,
+.yags-filter-button,
+.yags-row-action {
+  border-radius: 0;
+}
+
+.yags-bar,
+.yags-results {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.theme-light .yags-bar,
+.theme-light .yags-results {
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}

@@ -9,6 +9,8 @@ from yags.bookmarks import kind_of  # noqa: E402
 from yags.commands import _accelerator  # noqa: E402
 from yags.plugins import is_word_keyword  # noqa: E402
 from yags.settings import parse_variant, quote, string_list  # noqa: E402
+from yags.styles import StyleStore  # noqa: E402
+from yags.ui import CliError  # noqa: E402
 
 
 class VariantTests(unittest.TestCase):
@@ -34,6 +36,11 @@ class HelperTests(unittest.TestCase):
     def test_keywords(self):
         self.assertTrue(is_word_keyword("f"))
         self.assertFalse(is_word_keyword(">"))
+
+    def test_style_names(self):
+        self.assertEqual(StyleStore.path("my-style").name, "my-style.css")
+        with self.assertRaises(CliError):
+            StyleStore.path("../evil")
 
     def test_bookmark_kinds(self):
         self.assertEqual(kind_of("> df -h"), "command")

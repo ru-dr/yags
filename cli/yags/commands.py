@@ -5,10 +5,11 @@ from . import VERSION
 from .bookmarks import BookmarkStore, kind_of
 from .doctor import run_doctor, shortcut_conflicts
 from .install import install, uninstall
-from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, UUID
+from .paths import BOOKMARKS_FILE, EXTENSION_DIR, USER_PLUGINS, USER_STYLES, UUID
 from .plugins import PluginCatalog, is_word_keyword
 from .settings import Settings, quote
 from .sources import SourceCatalog
+from .styles import StyleStore
 from .system import extension_state, is_active, run
 from .ui import CliError, bold, dim, fmt, ok, table, warn
 
@@ -28,6 +29,7 @@ class Context:
         self.settings = Settings()
         self.plugins = PluginCatalog(self.settings)
         self.sources = SourceCatalog(self.settings, self.plugins)
+        self.styles = StyleStore(self.settings)
         self.bookmarks = BookmarkStore()
 
     def core_features(self):
@@ -57,7 +59,7 @@ def status(ctx, _args):
     print(f"  path      {EXTENSION_DIR}{link}")
     print(f"  state     {state}")
     print(f"  shortcut  {ctx.settings.get('toggle-shortcut')[0]}")
-    print(f"  style     {ctx.settings.get('style')}, theme {ctx.settings.get('theme-preference')}")
+    print(f"  style     {ctx.settings.get('style') or 'built-in'}, theme {ctx.settings.get('theme-preference')}")
     print(f"  plugins   {len(enabled)} on: {', '.join(enabled)}")
 
 
@@ -136,9 +138,62 @@ def theme(ctx, args):
     print(fmt(ctx.settings.set_text("theme-preference", args.value) if args.value else ctx.settings.get("theme-preference")))
 
 
-@command("style", "show or set the look", arguments=[("value", {"nargs": "?", "choices": ["mac", "powertoys"]})])
+@command("style", "list, use, create or remove custom CSS styles",
+         arguments=[
+             ("action", {"nargs": "?", "choices": ["list", "use", "off", "new", "rm", "remove", "path", "dir"]}),
+             ("rest", {"nargs": "*"}),
+         ])
 def style(ctx, args):
-    print(fmt(ctx.settings.set_text("style", args.value) if args.value else ctx.settings.get("style")))
+    STYLE_ACTIONS[args.action or "list"](ctx, args)
+
+
+def _style_name(args):
+    if not args.rest:
+        raise CliError("give a style name")
+    return args.rest[0]
+
+
+def _style_list(ctx, _args):
+    active = ctx.styles.active()
+    rows = [("built-in", "active" if not active else "", "the default look")]
+    rows += [(name, "active" if name == active else "", str(ctx.styles.path(name))) for name in ctx.styles.names()]
+    table(rows)
+    print(dim("  create one: yags style new NAME, then yags style use NAME"))
+
+
+def _style_use(ctx, args):
+    name = _style_name(args)
+    ctx.styles.use(name)
+    ok(f"style {name}; edits to the file apply as you save")
+
+
+def _style_off(ctx, _args):
+    ctx.styles.off()
+    ok("built-in style")
+
+
+def _style_new(ctx, args):
+    target = ctx.styles.create(_style_name(args), args.rest[1] if len(args.rest) > 1 else None)
+    ok(f"created {target}")
+    print(f"  apply it: yags style use {target.stem}")
+
+
+def _style_remove(ctx, args):
+    name = _style_name(args)
+    ctx.styles.remove(name)
+    ok(f"removed {name}")
+
+
+STYLE_ACTIONS = {
+    "list": _style_list,
+    "use": _style_use,
+    "off": _style_off,
+    "new": _style_new,
+    "rm": _style_remove,
+    "remove": _style_remove,
+    "path": lambda ctx, args: print(ctx.styles.path(_style_name(args))),
+    "dir": lambda _ctx, _args: print(USER_STYLES),
+}
 
 
 @command("accent", "show or set the accent colour, e.g. #ff375f", arguments=[("value", {"nargs": "?"})])

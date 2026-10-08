@@ -4,7 +4,7 @@
 
 **Yet Another GNOME Search**
 
-A macOS-inspired, keyboard-first launcher for GNOME Shell, with PowerToys Run style plugins.
+A macOS-inspired, keyboard-first launcher for GNOME Shell, with a plugin system and custom styles.
 
 `Super + Space`, type, `Enter`.
 
@@ -49,14 +49,8 @@ Every one of those features is a **plugin**. You can turn each one off, give it 
 - Opens over fullscreen apps, and `Super + Space` never leaks a key press into the app behind it
 - Uses your system font and follows the light or dark theme, with your own accent colour
 - A full CLI (`yags`) and a preferences window, and every change applies live
-- Two looks: the default Mac style, or `yags style powertoys` for a single window
+- Custom styles: drop a CSS file in `~/.config/yags/styles`, and it applies live as you edit it ([guide](docs/STYLES.md))
 
-<details>
-<summary>PowerToys style</summary>
-
-![PowerToys style](docs/screenshots/powertoys.png)
-
-</details>
 
 ## Install
 
@@ -174,6 +168,22 @@ if sys.argv[1] == "query":
 
 **📘 Read the [plugin guide](docs/PLUGINS.md)** for the manifest, the API, previews, actions and settings. Working examples are in [`examples/plugins`](examples/plugins).
 
+## Styles
+
+The look is plain CSS. A style is one file in `~/.config/yags/styles/`. Your rules override the built-in look, and every save applies straight away.
+
+```bash
+yags style new mine        # start from an example
+yags style use mine
+```
+
+```css
+.yags-bar, .yags-results { border-radius: 0; border: 2px solid #ff375f; }
+.list-search-result:selected { background-color: rgba(255, 255, 255, 0.12); }
+```
+
+**🎨 Read the [style guide](docs/STYLES.md)** for every selector. Examples are in [`examples/styles`](examples/styles).
+
 ## Configure
 
 Everything applies live, with no logout.
@@ -182,7 +192,7 @@ Everything applies live, with no logout.
 yags                          # status
 yags prefs                    # graphical preferences
 yags list                     # every setting
-yags style mac                # mac | powertoys
+yags style use mine           # a custom CSS style, see docs/STYLES.md
 yags theme dark               # default | dark | light
 yags accent '#ff375f'
 yags shortcut super+space
@@ -233,6 +243,6 @@ Issues and pull requests are welcome.
 
 ## Credits
 
-yags started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin, and was rewritten by [ru-dr](https://github.com/ru-dr). It is inspired by macOS Spotlight and PowerToys Run, but is not affiliated with either.
+yags started as a fork of [Spotlight](https://github.com/itsnin/spotlight) by itsnin. Built by the community, for the community.
 
 Licensed under [GPL-3.0-or-later](LICENSE).

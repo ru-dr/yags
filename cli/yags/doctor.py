@@ -4,7 +4,7 @@ import shutil
 import time
 from pathlib import Path
 
-from .paths import EXTENSION_DIR, UUID
+from .paths import EXTENSION_DIR, USER_STYLES, UUID
 from .system import extension_state, is_active, run
 from .ui import bad, bold, ok, warn
 
@@ -74,9 +74,16 @@ def _check_overview_search():
              "Fix: dconf write /org/gnome/shell/extensions/just-perfection/search true")
 
 
+def _check_style(settings):
+    name = settings.get("style")
+    if name and not (USER_STYLES / f"{name}.css").exists():
+        warn(f"style {name} not found in {USER_STYLES}, using the built-in look. Fix: yags style off")
+
+
 def run_doctor(settings, catalog):
     print(bold("yags doctor"))
     _check_extension()
+    _check_style(settings)
     _check_plocate()
     _check_clipboard()
     _check_overview_search()
